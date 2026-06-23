@@ -101,8 +101,9 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(!CId||!PId){toast('Invalid chat','error');goTo('home.html');return}
   // Animations
   if(localStorage.getItem('anim')==='off')document.body.classList.add('no-anim');
+  initScrollTracker();
   loadPartner();
-  msgUnsub=listenMessages(CId,ms=>{renderMsgs(ms);markSeen(CId)});
+  msgUnsub=listenMessages(CId,ms=>{renderMsgs(ms);markSeen(CId);if(!document.querySelector('.msg-wrap'))scrollToBottom()});
   listenTyping(CId,()=>{const i=document.getElementById('typingInd');i.style.display='flex';setTimeout(()=>i.style.display='none',3000)});
 });
 
@@ -115,66 +116,97 @@ async function loadPartner(){
   REFS.presence.child(PId).on('value',s=>{const st=document.getElementById('chatStatus');const d=s.val();if(d&&d.online){st.textContent='Online';st.className='topbar-sub online'}else{st.textContent='Offline';st.className='topbar-sub'}});
 }
 
-function renderMsgs(msgs){
-  const c=document.getElementById('msgList');const my=uid();c.innerHTML='';
-  let lastDate='';
-  msgs.forEach(m=>{
-    // Date separator
-    const d=new Date(m.timestamp).toDateString();
-    if(d!==lastDate){lastDate=d;const sep=document.createElement('div');sep.className='date-sep';sep.innerHTML='<span>'+new Date(m.timestamp).toLocaleDateString([],{day:'numeric',month:'short',year:'numeric'})+'</span>';c.appendChild(sep)}
-    const mine=m.senderId===my;
-    const wrap=document.createElement('div');
-    wrap.className='msg-wrap '+(mine?'sent':'rcvd');
-    wrap.dataset.id=m.id;
-
-    // Swipe reply indicator
-    const swi=document.createElement('div');swi.className='swipe-indicator';swi.innerHTML='<i class="fa-solid fa-reply"></i>';wrap.appendChild(swi);
-
-    const msg=document.createElement('div');
-    msg.className='msg '+(mine?'sent':'rcvd');
-    if(m.pinned)msg.innerHTML+='<div class="msg-pin"><i class="fa-solid fa-thumbtack"></i></div>';
-
-    let html='';
-    // Reply quote
-    if(m.replyTo)html+=`<div style="font-size:11px;color:${mine?'rgba(255,255,255,.5)':'var(--primary)'};margin-bottom:3px;border-left:2px solid ${mine?'rgba(255,255,255,.3)':'var(--primary)'};padding-left:7px">${escapeHtml(m.replyTo.text||'')}</div>`;
-    // Image
-    if(m.type==='image'&&m.imageUrl&&!m.deleted)html+=`<img src="${m.imageUrl}" class="msg-img" alt="Image">`;
-    // Deleted
-    if(m.deleted){html+=`<div class="msg-deleted">${m.deleted==='everyone'?'This message was deleted':'You deleted this message'}</div>`}
-    // Text
-    else if(m.text){
-      if(m.starred)html+=`<span class="msg-star"><i class="fa-solid fa-star" style="color:var(--warning);font-size:11px"></i></span>`;
-      html+=`<div class="msg-text">${escapeHtml(m.text)}</div>`;
-    }
-    // Edited label
-    if(m.edited&&!m.deleted)html+=`<span class="msg-edited">edited</span>`;
-    // Meta: time + status
-    html+=`<div class="msg-meta">${formatTime(m.timestamp)}${mine?`<span class="msg-status ${m.seen?'seen':m.delivered?'delivered':''}">${m.seen?'<i class="fa-solid fa-check-double"></i>':m.delivered?'<i class="fa-solid fa-check-double"></i>':'<i class="fa-solid fa-check"></i>'}</span>`:''}</div>`;
-    msg.innerHTML=html;
-    // Attach image click
-    const imgEl=msg.querySelector('.msg-img');
-    if(imgEl)imgEl.onclick=(e)=>{e.stopPropagation();openViewer(imgEl.src)};
-    wrap.appendChild(msg);
-
-    // Swipe to reply (touch)
-    let sx=0,swiping=false;
-    wrap.addEventListener('touchstart',e=>{sx=e.touches[0].clientX});
-    wrap.addEventListener('touchmove',e=>{
-      const dx=e.touches[0].clientX-sx;
-      if(dx>30&&dx<120&&!swiping){swiping=true;wrap.classList.add('swiping');navigator.vibrate&&navigator.vibrate(10)}
-      if(dx<30)swiping=false;
-    });
-    wrap.addEventListener('touchend',e=>{
-      if(wrap.classList.contains('swiping')){wrap.classList.remove('swiping');replyTo(m.text,m.id);}
-      swiping=false;
-    });
-
-    // Long press
-    let lt;wrap.addEventListener('mousedown',()=>{lt=setTimeout(()=>showMenu(m),400)});wrap.addEventListener('mouseup',()=>clearTimeout(lt));wrap.addEventListener('mouseleave',()=>clearTimeout(lt));wrap.addEventListener('touchstart',()=>{lt=setTimeout(()=>showMenu(m),400)});wrap.addEventListener('touchend',()=>clearTimeout(lt));
-
-    c.appendChild(wrap);
+// ===== SMART SCROLL =====
+let _isNearBottom=true;
+function initScrollTracker(){
+  const con=document.getElementById('msgContainer');
+  if(!con)return;
+  con.addEventListener('scroll',()=>{
+    const d=con.scrollHeight-con.scrollTop-con.clientHeight;
+    _isNearBottom=d<120;
   });
-  document.getElementById('msgContainer').scrollTop=document.getElementById('msgContainer').scrollHeight;
+}
+function scrollToBottom(){
+  const con=document.getElementById('msgContainer');
+  if(!con)return;
+  con.scrollTop=con.scrollHeight;
+}
+
+function createMsgEl(m,my){
+  const mine=m.senderId===my;
+  const wrap=document.createElement('div');
+  wrap.className='msg-wrap '+(mine?'sent':'rcvd');
+  wrap.dataset.id=m.id;
+  const swi=document.createElement('div');swi.className='swipe-indicator';swi.innerHTML='<i class="fa-solid fa-reply"></i>';wrap.appendChild(swi);
+  const msg=document.createElement('div');
+  msg.className='msg '+(mine?'sent':'rcvd');
+  if(m.pinned)msg.innerHTML+='<div class="msg-pin"><i class="fa-solid fa-thumbtack"></i></div>';
+  let html='';
+  if(m.replyTo)html+=`<div style="font-size:11px;color:${mine?'rgba(255,255,255,.5)':'var(--primary)'};margin-bottom:3px;border-left:2px solid ${mine?'rgba(255,255,255,.3)':'var(--primary)'};padding-left:7px">${escapeHtml(m.replyTo.text||'')}</div>`;
+  if(m.type==='image'&&m.imageUrl&&!m.deleted)html+=`<img src="${m.imageUrl}" class="msg-img" alt="Image">`;
+  if(m.deleted){html+=`<div class="msg-deleted">${m.deleted==='everyone'?'This message was deleted':'You deleted this message'}</div>`}
+  else if(m.text){
+    if(m.starred)html+=`<span class="msg-star"><i class="fa-solid fa-star" style="color:var(--warning);font-size:11px"></i></span>`;
+    html+=`<div class="msg-text">${escapeHtml(m.text)}</div>`;
+  }
+  if(m.edited&&!m.deleted)html+=`<span class="msg-edited">edited</span>`;
+  html+=`<div class="msg-meta">${formatTime(m.timestamp)}${mine?`<span class="msg-status ${m.seen?'seen':m.delivered?'delivered':''}">${m.seen?'<i class="fa-solid fa-check-double"></i>':m.delivered?'<i class="fa-solid fa-check-double"></i>':'<i class="fa-solid fa-check"></i>'}</span>`:''}</div>`;
+  msg.innerHTML=html;
+  const imgEl=msg.querySelector('.msg-img');
+  if(imgEl)imgEl.onclick=(e)=>{e.stopPropagation();openViewer(imgEl.src)};
+  wrap.appendChild(msg);
+  let sx=0,swiping=false;
+  wrap.addEventListener('touchstart',e=>{sx=e.touches[0].clientX});
+  wrap.addEventListener('touchmove',e=>{
+    const dx=e.touches[0].clientX-sx;
+    if(dx>30&&dx<120&&!swiping){swiping=true;wrap.classList.add('swiping');navigator.vibrate&&navigator.vibrate(10)}
+    if(dx<30)swiping=false;
+  });
+  wrap.addEventListener('touchend',e=>{
+    if(wrap.classList.contains('swiping')){wrap.classList.remove('swiping');replyTo(m.text,m.id);}
+    swiping=false;
+  });
+  let lt;wrap.addEventListener('mousedown',()=>{lt=setTimeout(()=>showMenu(m),400)});wrap.addEventListener('mouseup',()=>clearTimeout(lt));wrap.addEventListener('mouseleave',()=>clearTimeout(lt));wrap.addEventListener('touchstart',()=>{lt=setTimeout(()=>showMenu(m),400)});wrap.addEventListener('touchend',()=>clearTimeout(lt));
+  return wrap;
+}
+
+function renderMsgs(msgs){
+  const c=document.getElementById('msgList');const my=uid();
+  const existing=new Set();
+  c.querySelectorAll('.msg-wrap').forEach(el=>existing.add(el.dataset.id));
+  let lastDate='';
+  const lastMsgEl=c.querySelector('.msg-wrap:last-child');
+  if(lastMsgEl){
+    const lm=msgs.find(m=>m.id===lastMsgEl.dataset.id);
+    if(lm)lastDate=new Date(lm.timestamp).toDateString();
+  }
+  const added=[];
+  msgs.forEach(m=>{
+    if(existing.has(m.id))return;
+    const d=new Date(m.timestamp).toDateString();
+    if(d!==lastDate){
+      lastDate=d;
+      const sep=document.createElement('div');sep.className='date-sep';sep.innerHTML='<span>'+new Date(m.timestamp).toLocaleDateString([],{day:'numeric',month:'short',year:'numeric'})+'</span>';
+      c.appendChild(sep);added.push(sep);
+    }
+    const el=createMsgEl(m,my);
+    c.appendChild(el);added.push(el);
+  });
+  // Update status on existing messages
+  msgs.forEach(m=>{
+    if(!existing.has(m.id))return;
+    const el=c.querySelector('.msg-wrap[data-id="'+m.id+'"]');
+    if(!el)return;
+    const statusEl=el.querySelector('.msg-status');
+    if(!statusEl)return;
+    if(m.senderId===my){
+      if(m.seen&&statusEl.className!=='msg-status seen'){statusEl.className='msg-status seen';statusEl.innerHTML='<i class="fa-solid fa-check-double"></i>'}
+      else if(m.delivered&&!m.seen&&statusEl.className!=='msg-status delivered'){statusEl.className='msg-status delivered';statusEl.innerHTML='<i class="fa-solid fa-check-double"></i>'}
+      else if(!m.delivered&&!m.seen&&statusEl.className!=='msg-status'){statusEl.className='msg-status';statusEl.innerHTML='<i class="fa-solid fa-check"></i>'}
+    }
+    if(m.edited){const ed=el.querySelector('.msg-edited');if(!ed){const meta=el.querySelector('.msg-meta');if(meta){const s=document.createElement('span');s.className='msg-edited';s.textContent='edited';meta.before(s)}}}
+  });
+  if(added.length&&_isNearBottom)scrollToBottom();
 }
 
 let _ctxMsg=null;

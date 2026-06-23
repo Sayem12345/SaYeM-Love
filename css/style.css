@@ -4,7 +4,8 @@
 .icon-lg{font-size:28px;width:48px;height:48px}
 .icon-xl{font-size:40px;width:64px;height:64px}
 :root{--bg:#0B1220;--bg2:#111827;--bg3:#172033;--bg4:#0A0F1A;--primary:#7C3AED;--primary-hover:#8B5CF6;--accent:#06B6D4;--success:#22C55E;--danger:#EF4444;--warning:#F59E0B;--text:#FFFFFF;--text2:#94A3B8;--text3:#64748B;--msg-sent-start:#7C3AED;--msg-sent-end:#8B5CF6;--msg-rcvd:#1E293B;--glass:rgba(23,32,51,0.75);--glass-border:rgba(255,255,255,0.06);--radius:20px;--radius-sm:16px;--radius-xs:10px;--radius-input:16px;--radius-btn:18px;--radius-msg:22px;--shadow:0 4px 24px rgba(0,0,0,0.3);--shadow-glow:0 0 20px rgba(124,58,237,0.15);--transition:0.25s cubic-bezier(.4,0,.2,1);--font:'Inter','Poppins','Roboto','Segoe UI',system-ui,-apple-system,sans-serif}
-html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--text);overflow:hidden;-webkit-font-smoothing:antialiased}
+html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--text);overflow:hidden;-webkit-font-smoothing:antialiased;position:relative}
+body{display:flex;flex-direction:column}
 a{color:var(--primary);text-decoration:none}
 button{cursor:pointer;border:none;outline:none;font-family:inherit;font-size:inherit;background:none;color:inherit}
 input,textarea{font-family:inherit;font-size:inherit;outline:none;border:none;background:none;color:var(--text)}
@@ -79,7 +80,7 @@ img{max-width:100%;display:block}
 .chat-archived:active{background:var(--bg2)}
 
 /* ===== SEVEN MESSAGES ===== */
-.msg-container{flex:1;overflow-y:auto;padding:8px 0;display:flex;flex-direction:column;gap:2px;background:linear-gradient(180deg,#0B1220 0%,#111827 100%)}
+.msg-container{flex:1;overflow-y:auto;overflow-x:hidden;padding:8px 0;background:linear-gradient(180deg,#0B1220 0%,#111827 100%);-webkit-overflow-scrolling:touch;scroll-behavior:smooth}
 .msg-wrap{display:flex;flex-direction:column;max-width:75%;position:relative;animation:msgSlide .25s cubic-bezier(.4,0,.2,1);margin-top:6px;margin-bottom:6px}
 .msg-wrap.end{max-width:75%}
 .msg-wrap.sent{margin-left:auto;margin-right:12px;align-items:flex-end}
