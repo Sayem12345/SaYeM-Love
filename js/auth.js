@@ -137,13 +137,20 @@ function initPresence(){
 
 // ===== AUTH INIT =====
 document.addEventListener('DOMContentLoaded',async()=>{
-  const loggedIn=await autoLogin();
   window._autoLoginDone=true;
+  const loggedIn=await autoLogin();
+  const page=window.location.pathname.split('/').pop();
   if(loggedIn){
     initPresence();
-    const page=window.location.pathname.split('/').pop();
-    if(page==='login.html'||page==='registration.html'||page==='index.html'){
+    if(page==='login.html'||page==='registration.html'||page==='index.html'||page===''){
       goTo('home.html');
+    }
+  }else{
+    const appPages=['home.html','chat.html','profile.html','settings.html'];
+    if(page==='index.html'||page===''||appPages.includes(page)){
+      const uid=localStorage.getItem('uid');
+      if(uid)goTo('login.html');
+      else goTo('registration.html');
     }
   }
 });

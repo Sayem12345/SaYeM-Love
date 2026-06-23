@@ -40,6 +40,11 @@
 <script src="js/profile.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded',()=>{
+  const splash=document.getElementById('splash');
+  if(splash){
+    splash.classList.add('hidden');
+    setTimeout(()=>{if(splash&&splash.parentNode)splash.remove()},500);
+  }
   if(window._autoLoginDone)return;
   const s=getSession();
   if(s&&s.uid){
@@ -49,8 +54,6 @@ document.addEventListener('DOMContentLoaded',()=>{
     goTo(initPage);
   }else if(localStorage.getItem('uid')){goTo('login.html')}
   else{goTo('registration.html')}
-  document.getElementById('splash').classList.add('hidden');
-  setTimeout(()=>{const sp=document.getElementById('splash');if(sp)sp.remove()},500);
 });
 </script>
 </body>

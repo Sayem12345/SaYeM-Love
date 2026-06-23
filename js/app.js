@@ -89,8 +89,7 @@ function _restoreScrollState(){
   },50);
 }
 function _initCurPage(pn){
-  if(pn==='home.html'&&typeof initHome==='function')initHome();
-  else if(pn==='chat.html'&&typeof initChat==='function')initChat();
+  if(pn==='chat.html'&&typeof initChat==='function')initChat();
   else if(pn==='profile.html'&&typeof initProfile==='function')initProfile();
   else if(pn==='settings.html'&&typeof initSettings==='function')initSettings();
 }
@@ -205,8 +204,6 @@ SOUNDS.notification=()=>{
   if(!shouldPlay())return;
   playSfx([[440,0.12,'triangle',0.2,0],[660,0.12,'triangle',0.2,0.12],[880,0.15,'triangle',0.15,0.24]]);
 };
-document.addEventListener('DOMContentLoaded',initSounds);
-
 // ===== ANDROID BACK BUTTON + EXIT MODAL =====
 let _inSubPage=false;
 
