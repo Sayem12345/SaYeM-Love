@@ -5,9 +5,18 @@ let fcmTokenRefreshInterval=null;
 async function initNotifications(){
   if(!('Notification'in window)||!firebase.messaging)return;
   try{
+    if(Notification.permission==='denied'){
+      if(typeof toast==='function')toast('Notifications blocked. Enable in your browser settings.','error');
+      return;
+    }
     messaging=firebase.messaging();
     const perm=await Notification.requestPermission();
-    if(perm!=='granted')return;
+    if(perm!=='granted'){
+      if(perm==='denied'&&typeof toast==='function'){
+        toast('Notification permission denied. Enable in browser site settings.','error');
+      }
+      return;
+    }
     await refreshFcmToken();
     messaging.onTokenRefresh(async()=>{await refreshFcmToken()});
     messaging.onMessage(handleForegroundMessage);
@@ -47,8 +56,8 @@ function handleForegroundMessage(payload){
     const senderImage=d.senderImage||'';
     const timestamp=d.timestamp||Date.now();
 
-    if(SOUNDS.notification)SOUNDS.notification();
-    if(localStorage.getItem('vibrate')!=='off')try{navigator.vibrate([100,50,100])}catch(e){}
+    if(SOUNDS.notification&&localStorage.getItem('sound')!=='off')SOUNDS.notification();
+    if(localStorage.getItem('vibrate')!=='off')try{navigator.vibrate([100,50,100,50,100])}catch(e){}
     showInAppNotification(senderName,body,senderImage,chatId,image,timestamp);
     // Update unread badge
     updateUnreadBadge();
@@ -57,6 +66,10 @@ function handleForegroundMessage(payload){
 
 // ===== IN-APP TOAST NOTIFICATION =====
 function showInAppNotification(senderName,body,senderImage,chatId,image,timestamp){
+  if(chatId&&document.querySelector(`[data-chat-id="${chatId}"]`)&&window.location.pathname.includes('chat.html')){
+    return;
+  }
+  const existing=document.querySelector('.in-app-notif.show');
   const notif=document.createElement('div');
   notif.className='in-app-notif';
   const ts=timestamp?new Date(timestamp).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):'';
@@ -72,17 +85,25 @@ function showInAppNotification(senderName,body,senderImage,chatId,image,timestam
       </div>
       ${imgContent}
     </div>
-    <button class="in-app-notif-close" onclick="this.parentElement.remove()">✕</button>
+    <button class="in-app-notif-close" onclick="this.parentElement.remove();this.parentElement.classList.remove('show')">✕</button>
   `;
-  if(chatId&&document.querySelector(`[data-chat-id="${chatId}"]`)){
-    // Already viewing this chat, don't show notification
-    notif.remove();
-    return;
-  }
-  if(chatId)notif.onclick=()=>{notif.remove();goTo('chat.html?id='+chatId+'&partner='+chatId)};
+  if(chatId)notif.onclick=()=>{notif.classList.remove('show');setTimeout(()=>notif.remove(),300);goTo('chat.html?id='+chatId+'&partner='+chatId)};
+  // Swipe to dismiss
+  let startX=0;
+  notif.addEventListener('touchstart',e=>{startX=e.touches[0].clientX});
+  notif.addEventListener('touchmove',e=>{
+    const dx=e.touches[0].clientX-startX;
+    if(dx<0)notif.style.transform='translateX('+dx+'px)';
+  });
+  notif.addEventListener('touchend',e=>{
+    const dx=e.changedTouches[0].clientX-startX;
+    if(dx<-60){notif.classList.remove('show');setTimeout(()=>notif.remove(),300)}
+    else notif.style.transform='';
+  });
   document.body.appendChild(notif);
   requestAnimationFrame(()=>notif.classList.add('show'));
-  setTimeout(()=>{notif.classList.remove('show');setTimeout(()=>notif.remove(),300)},4500);
+  if(existing&&existing!==notif){existing.classList.remove('show');setTimeout(()=>existing.remove(),300)}
+  setTimeout(()=>{notif.classList.remove('show');setTimeout(()=>notif.remove(),300)},5000);
 }
 
 // ===== UPDATES UNREAD BADGE =====
@@ -126,14 +147,14 @@ function cleanupNotifications(){
 // Add in-app notification CSS dynamically
 const notifStyle=document.createElement('style');
 notifStyle.textContent=`
-.in-app-notif{position:fixed;top:0;left:0;right:0;z-index:9999;transform:translateY(-100%);transition:transform .3s cubic-bezier(.32,.72,0,1);padding:10px 14px;padding-top:calc(env(safe-area-inset-top,0)+10px);display:flex;align-items:flex-start;gap:10px;background:rgba(30,41,59,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--glass-border);cursor:pointer}
-.in-app-notif.show{transform:translateY(0)}
+.in-app-notif{position:fixed;top:0;left:0;right:0;z-index:9999;transform:translateY(-100%);transition:transform .3s cubic-bezier(.32,.72,0,1);padding:10px 14px;padding-top:calc(env(safe-area-inset-top,0)+10px);display:flex;align-items:flex-start;gap:10px;background:rgba(30,41,59,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--glass-border);cursor:pointer;touch-action:pan-x}
+.in-app-notif.show{transform:translateY(0)}.in-app-notif.hiding{transform:translateY(-120%);opacity:0}
 .in-app-notif-inner{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
 .in-app-notif-content{flex:1;min-width:0}
 .in-app-notif-name{font-weight:600;font-size:13px;color:var(--primary)}
 .in-app-notif-body{font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .in-app-notif-time{font-size:10px;color:var(--text3);margin-top:2px}
-.in-app-notif-img{width:36px;height:36px;border-radius:6px;object-fit:cover;flex-shrink:0}
+.in-app-notif-img{width:36px;height:36px;border-radius:8px;object-fit:cover;flex-shrink:0}
 .in-app-notif-close{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:12px;cursor:pointer;flex-shrink:0;background:var(--bg3);border:none;margin-top:2px}
 .in-app-notif-close:active{background:var(--danger);color:#fff}
 `;

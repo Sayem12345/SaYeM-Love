@@ -32,8 +32,9 @@
 <div style="flex:1;overflow-y:auto;padding:8px 0">
   <div class="settings-group"><div class="settings-group-title">Preferences</div>
     <div class="settings-row" onclick="toggleTheme()"><div class="settings-row-left"><div class="settings-row-icon cyan"><i class="fa-solid fa-moon"></i></div><div><div class="settings-row-label">Dark Mode</div><div class="settings-row-desc">Toggle dark/light theme</div></div></div><div class="toggle active" id="sTheme"><div class="toggle-knob"></div></div></div>
-    <div class="settings-row" onclick="toggleNotif()"><div class="settings-row-left"><div class="settings-row-icon blue"><i class="fa-solid fa-bell"></i></div><div><div class="settings-row-label">Notifications</div><div class="settings-row-desc">Receive push alerts</div></div></div><div class="toggle active" id="sNotif"><div class="toggle-knob"></div></div></div>
+    <div class="settings-row" onclick="toggleNotif()"><div class="settings-row-left"><div class="settings-row-icon blue"><i class="fa-solid fa-bell"></i></div><div><div class="settings-row-label">Notifications</div><div class="settings-row-desc"><span id="sNotifStatus">Checking...</span></div></div></div><div class="toggle active" id="sNotif"><div class="toggle-knob"></div></div></div>
     <div class="settings-row" onclick="toggleSound()"><div class="settings-row-left"><div class="settings-row-icon green"><i class="fa-solid fa-volume-high"></i></div><div><div class="settings-row-label">Sound</div><div class="settings-row-desc">Message notification sounds</div></div></div><div class="toggle active" id="sSound"><div class="toggle-knob"></div></div></div>
+    <div class="settings-row" onclick="toggleVibrate()"><div class="settings-row-left"><div class="settings-row-icon yellow"><i class="fa-solid fa-mobile-screen-button"></i></div><div><div class="settings-row-label">Vibration</div><div class="settings-row-desc">Vibrate on new messages</div></div></div><div class="toggle active" id="sVibrate"><div class="toggle-knob"></div></div></div>
   </div>
   <div class="settings-group"><div class="settings-group-title">Storage</div>
     <div class="settings-row" onclick="showGitToken()"><div class="settings-row-left"><div class="settings-row-icon cyan"><i class="fa-brands fa-github"></i></div><div><div class="settings-row-label">GitHub Token</div><div class="settings-row-desc">Set for image uploads</div></div></div><span style="color:var(--text3)" id="sGtStatus"><i class="fa-regular fa-circle"></i></span></div>
@@ -65,19 +66,30 @@
 <script src="js/firebase.js"></script>
 <script src="js/app.js"></script>
 <script src="js/auth.js"></script>
+<script src="js/notifications.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded',()=>{
   if(!isLoggedIn()){goTo('login.html');return}
-  const t=localStorage.getItem('theme'),n=localStorage.getItem('notif'),s=localStorage.getItem('sound');
+  const t=localStorage.getItem('theme'),n=localStorage.getItem('notif'),s=localStorage.getItem('sound'),v=localStorage.getItem('vibrate');
   document.getElementById('sTheme').classList.toggle('active',t!=='light');
   document.getElementById('sNotif').classList.toggle('active',n!=='off');
   document.getElementById('sSound').classList.toggle('active',s!=='off');
+  document.getElementById('sVibrate').classList.toggle('active',v!=='off');
   if(t==='light')document.body.classList.add('light');
   updateGtStatus();
+  updateNotifPermission();
 });
 function toggleTheme(){const t=document.getElementById('sTheme');t.classList.toggle('active');document.body.classList.toggle('light');localStorage.setItem('theme',t.classList.contains('active')?'dark':'light')}
-function toggleNotif(){const t=document.getElementById('sNotif');t.classList.toggle('active');localStorage.setItem('notif',t.classList.contains('active')?'on':'off');if(t.classList.contains('active'))initNotifications()}
+function toggleNotif(){const t=document.getElementById('sNotif');t.classList.toggle('active');localStorage.setItem('notif',t.classList.contains('active')?'on':'off');if(t.classList.contains('active')){if(Notification.permission==='denied'){toast('Notifications blocked. Enable in browser settings','error');document.getElementById('sNotifStatus').innerHTML='<span style="color:var(--danger)">Blocked</span>'}else{initNotifications()}}else{cleanupNotifications()};updateNotifPermission()}
 function toggleSound(){const t=document.getElementById('sSound');t.classList.toggle('active');localStorage.setItem('sound',t.classList.contains('active')?'on':'off')}
+function toggleVibrate(){const t=document.getElementById('sVibrate');t.classList.toggle('active');localStorage.setItem('vibrate',t.classList.contains('active')?'on':'off')}
+function updateNotifPermission(){
+  const s=document.getElementById('sNotifStatus');
+  if(!('Notification'in window)){s.innerHTML='<span style="color:var(--text3)">Unsupported</span>';return}
+  if(Notification.permission==='granted')s.innerHTML='<span style="color:var(--success)"><i class="fa-solid fa-check-circle"></i> Granted</span>';
+  else if(Notification.permission==='denied')s.innerHTML='<span style="color:var(--danger)"><i class="fa-solid fa-circle-exclamation"></i> Blocked</span>';
+  else s.innerHTML='<span style="color:var(--warning)"><i class="fa-regular fa-clock"></i> Not requested</span>'
+}
 function clearCache(){if('caches'in window){caches.keys().then(keys=>Promise.all(keys.map(k=>caches.delete(k)))).then(()=>toast('Cache cleared','success'))}else toast('Not supported','error')}
 function changePwd(){document.getElementById('pwdModal').classList.add('active')}
 function closeModal(id){document.getElementById(id).classList.remove('active')}
@@ -95,7 +107,7 @@ async function savePwd(){
   const nh=await sha256(n);await REFS.users.child(uid).update({passwordHash:nh});toast('Password changed','success');
   closeModal('pwdModal');document.getElementById('curPwd').value='';document.getElementById('newPwd').value='';document.getElementById('conPwd').value='';
 }
-function confirmLogout(){if(confirm('Logout from SEVEN?')){const u=localStorage.getItem('uid');if(u)REFS.users.child(u).update({onlineStatus:false,lastSeen:Date.now()});clearSession();goTo('login.html')}}
+function confirmLogout(){if(confirm('Logout from SEVEN?')){const u=localStorage.getItem('uid');if(u){REFS.users.child(u).update({onlineStatus:false,lastSeen:Date.now(),fcmToken:''});if(typeof firebase!=='undefined'&&firebase.messaging){try{firebase.messaging().deleteToken().catch(()=>{})}catch(e){}}};clearSession();goTo('login.html')}}
 </script>
 </body>
 </html>

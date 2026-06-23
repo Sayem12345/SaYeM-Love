@@ -104,19 +104,17 @@ async function logout(){
     try{
       await REFS.users.child(uid).update({onlineStatus:false,lastSeen:Date.now()});
     }catch(e){}
+    try{
+      if(typeof firebase!=='undefined'&&firebase.messaging){
+        const m=firebase.messaging();
+        m.deleteToken().catch(()=>{});
+      }
+      await REFS.users.child(uid).update({fcmToken:''});
+    }catch(e){}
   }
   clearSession();
   notifyAuthState(null);
   goTo('login.html');
-}
-
-// ===== SAVE FCM TOKEN =====
-async function saveFcmToken(token){
-  const uid=localStorage.getItem('uid');
-  if(!uid)return;
-  try{
-    await REFS.users.child(uid).update({fcmToken:token});
-  }catch(e){}
 }
 
 // ===== PRESENCE =====

@@ -88,7 +88,9 @@ async function sendMessage(chatId,text,type='text',imageUrl='',replyTo=null){
                 body:msgBody,
                 title:senderName,
                 image:'',
-                click_action:chatId
+                click_action:chatId,
+                android_channel_id:'seven-messages',
+                channelId:'seven-messages'
               }
             })
           });

@@ -1,4 +1,4 @@
-const C='seven-v4';
+const C='seven-v5';
 const F=['/','index.html','login.html','registration.html','home.html','chat.html','settings.html','profile.html','css/style.css','css/dark.css','css/mobile.css','js/firebase.js','js/app.js','js/auth.js','js/chat.js','js/search.js','js/notifications.js','js/profile.js','manifest.json'];
 
 self.addEventListener('install',e=>{
@@ -75,7 +75,7 @@ self.addEventListener('notificationclick',function(e){
 
 // ===== HELPER =====
 function getIcon(){
-  return'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"%3E%3Crect width="512" height="512" rx="100" fill="%2300A884"/%3E%3Ctext x="256" y="340" font-size="340" font-weight="900" text-anchor="middle" fill="%23FFFFFF" font-family="sans-serif"%3ES%3C/text%3E%3C/svg%3E';
+  return'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"%3E%3Crect width="512" height="512" rx="100" fill="%237C3AED"/%3E%3Ctext x="256" y="340" font-size="340" font-weight="900" text-anchor="middle" fill="%23FFFFFF" font-family="sans-serif"%3ES%3C/text%3E%3C/svg%3E';
 }
 
 function playSoundInSW(){
