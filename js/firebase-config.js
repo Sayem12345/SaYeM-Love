@@ -10,13 +10,12 @@ const firebaseConfig = {
 };
 
 const GITHUB_CONFIG = {
-  token: "BBwlW8pudfrTCqB-zfp_j5wNHhK77u1PoTptcyyKlzAhdC9dZy1_qJVmmKLLZqBkpErMUtW90mC7UnCLE5Qv2mk",
   repo: "Sayem12345/SaYeM-Love",
-  branch: "main"
+  branch: "master"
 };
 
 const VAPID_KEY = "4DvWftl5D0gwWt3Y2OE5xV5-8mWUHp60U49EOFLrFas";
 
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
-const messaging = firebase.messaging.isSupported() ? firebase.messaging() : null;
+const messaging = (typeof firebase.messaging !== 'undefined' && firebase.messaging.isSupported()) ? firebase.messaging() : null;

@@ -11,7 +11,8 @@ function checkAuth() {
 
 function requireAuth() {
   if (!checkAuth()) {
-    window.location.href = 'pages/login.html';
+    const isInPages = window.location.pathname.includes('/pages/');
+    window.location.href = isInPages ? 'login.html' : 'pages/login.html';
     return false;
   }
   return true;
@@ -29,7 +30,8 @@ function handleLogout() {
   currentUserId = null;
   currentUser = null;
   clearAllListeners();
-  window.location.href = 'pages/login.html';
+  const isInPages = window.location.pathname.includes('/pages/');
+  window.location.href = isInPages ? 'login.html' : 'pages/login.html';
 }
 
 function registerUser(fullName, username, password) {
@@ -80,7 +82,12 @@ function loginUser(username, password) {
         userData = child.val();
         userId = child.key;
       });
-      if (atob(userData.password) !== password) {
+      try {
+        if (atob(userData.password) !== password) {
+          reject('Incorrect password');
+          return;
+        }
+      } catch (e) {
         reject('Incorrect password');
         return;
       }

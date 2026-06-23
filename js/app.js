@@ -8,7 +8,7 @@ async function initializeApp() {
   if (isLoggedIn) {
     await initializeAuthenticatedApp();
   } else {
-    await initializeUnauthenticatedApp();
+    initializeUnauthenticatedApp();
   }
 }
 
@@ -33,11 +33,10 @@ async function initializeAuthenticatedApp() {
   }
 }
 
-async function initializeUnauthenticatedApp() {
-  showSplash();
+function initializeUnauthenticatedApp() {
   setTimeout(() => {
     window.location.href = 'pages/login.html';
-  }, 2000);
+  }, 1500);
 }
 
 function showMainApp() {
@@ -46,25 +45,9 @@ function showMainApp() {
     splash.classList.add('hide');
     setTimeout(() => {
       splash.style.display = 'none';
-      initializeChatUI();
+      window.location.href = 'pages/chat.html';
     }, 500);
   }, 1000);
-}
-
-function initializeChatUI() {
-  if (document.getElementById('chatListView')) {
-    loadChatList();
-  } else {
-    window.location.href = 'index.html';
-  }
-}
-
-function showSplash() {
-  const splash = document.querySelector('.splash-screen');
-  if (splash) {
-    splash.style.display = 'flex';
-    splash.classList.remove('hide');
-  }
 }
 
 window.addEventListener('beforeunload', () => {

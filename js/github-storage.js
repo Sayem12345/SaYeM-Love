@@ -14,10 +14,12 @@ async function uploadToGitHub(file, path) {
         const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
         const filePath = path ? `${path}/${fileName}` : fileName;
 
+        const token = typeof GITHUB_TOKEN !== 'undefined' ? GITHUB_TOKEN : '';
+        if (!token) throw new Error('GitHub token not configured. Copy js/github-token.example.js to js/github-token.js and add your token.');
         const response = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.repo}/contents/${filePath}`, {
           method: 'PUT',
           headers: {
-            'Authorization': `Bearer ${GITHUB_CONFIG.token}`,
+            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({

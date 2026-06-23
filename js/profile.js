@@ -33,7 +33,10 @@ function enableEdit(inputId) {
   if (inputId === 'profileUsername') {
     input.readOnly = false;
     input.focus();
-    input.addEventListener('input', debounce(checkProfileUsername, 500));
+    if (!input.dataset.listenerAttached) {
+      input.addEventListener('input', debounce(checkProfileUsername, 500));
+      input.dataset.listenerAttached = 'true';
+    }
   } else if (inputId === 'profilePassword') {
     input.focus();
   } else {
@@ -65,7 +68,6 @@ async function saveProfile() {
   const username = document.getElementById('profileUsername').value.trim();
   const password = document.getElementById('profilePassword').value;
   const confirmPassword = document.getElementById('profileConfirmPassword').value;
-  const usernameStatus = document.getElementById('profileUsernameStatus');
 
   if (!name) {
     showToast('Name cannot be empty', 'error');
@@ -76,12 +78,13 @@ async function saveProfile() {
 
   if (name) updates.fullName = name;
   if (username && username !== localStorage.getItem('seven_username')) {
-    if (usernameStatus.classList.contains('taken')) {
-      showToast('Username is already taken', 'error');
-      return;
-    }
     if (username.length < 3) {
       showToast('Username must be at least 3 characters', 'error');
+      return;
+    }
+    const available = await checkUsernameAvailability(username);
+    if (!available) {
+      showToast('Username is already taken', 'error');
       return;
     }
     updates.username = username.toLowerCase();

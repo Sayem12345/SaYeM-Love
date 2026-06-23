@@ -453,5 +453,6 @@ function closeUserProfile(event) {
 }
 
 function navigateToProfile() {
-  window.location.href = 'pages/profile.html';
+  const isInPages = window.location.pathname.includes('/pages/');
+  window.location.href = isInPages ? 'profile.html' : 'pages/profile.html';
 }
