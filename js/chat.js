@@ -40,15 +40,14 @@ async function sendMessage(chatId,text,type='text',imageUrl='',replyTo=null){
     edited:false,
     deleted:null,
     pinned:false,
-    starred:false,
-    reactions:{}
+    starred:false
   };
   if(imageUrl)msg.imageUrl=imageUrl;
   if(replyTo)msg.replyTo=replyTo;
   try{
     await REFS.messages.child(chatId).child(msgId).set(msg);
     await REFS.chats.child(chatId).update({
-      lastMessage:text||'📷 Image',
+      lastMessage:text||'[Image]',
       lastSender:myId,
       lastTime:Date.now()
     });
@@ -65,7 +64,7 @@ async function sendMessage(chatId,text,type='text',imageUrl='',replyTo=null){
         try{
           const senderName=currentUser?.name||'SEVEN';
           const senderImg=currentUser?.profileImage||'';
-          const msgBody=text||'📷 Image';
+          const msgBody=text||'Image';
           const msgTimestamp=Date.now();
           await fetch('https://fcm.googleapis.com/fcm/send',{
             method:'POST',

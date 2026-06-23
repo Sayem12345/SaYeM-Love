@@ -46,18 +46,11 @@
 </div>
 
 <div class="chat-input-wrap">
-  <button class="chat-action-btn" onclick="toggleEmoji()"><i class="fa-regular fa-face-smile"></i></button>
   <div class="chat-input-field">
     <textarea class="chat-input-text" id="chatInput" placeholder="Message..." rows="1" oninput="autoResize(this);setTyping(CId,this.value.length>0)" onkeydown="handleKey(event)"></textarea>
     <div class="chat-input-actions"><button class="chat-action-btn" onclick="document.getElementById('imgInput').click()"><i class="fa-solid fa-camera"></i></button></div>
   </div>
   <button class="chat-send" id="sendBtn" onclick="sendMsg()" disabled><i class="fa-solid fa-paper-plane"></i></button>
-</div>
-
-<div class="emoji-picker" id="emojiPicker">
-  <div class="emoji-search-wrap"><input type="text" id="emojiSearch" class="emoji-search" placeholder="Search emojis..." oninput="filterEmojis(this.value)"><i class="fa-solid fa-magnifying-glass" style="font-size:14px;color:var(--text3);padding-right:4px"></i></div>
-  <div class="emoji-recent" id="emojiRecent" style="display:none"><div style="font-size:11px;color:var(--text3);padding:2px 4px;margin-bottom:2px">Recent</div><div id="recentEmojis" class="emoji-grid"></div></div>
-  <div class="emoji-grid" id="emojiGrid"></div>
 </div>
 <input type="file" id="imgInput" accept="image/*" style="display:none" onchange="handleImage(event)">
 
@@ -93,7 +86,6 @@
 <script src="js/chat.js"></script>
 <script>
 function escapeHtml(t){const d=document.createElement('div');d.textContent=t;return d.innerHTML}
-const REACTIONS=['❤️','👍','😂','😮','😢','🙏'];
 let CId=null,PId=null,PD=null,reply=null,editing=null;
 
 document.addEventListener('DOMContentLoaded',()=>{
@@ -107,8 +99,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   loadPartner();
   msgUnsub=listenMessages(CId,ms=>{renderMsgs(ms);markSeen(CId)});
   listenTyping(CId,()=>{const i=document.getElementById('typingInd');i.style.display='flex';setTimeout(()=>i.style.display='none',3000)});
-  const g=document.getElementById('emojiGrid');EMOJIS.forEach(e=>{const b=document.createElement('button');b.textContent=e;b.dataset.emoji=e;b.className='emoji-btn';b.onclick=()=>insertEmoji(e);g.appendChild(b)});
-  loadRecentEmojis();
 });
 
 async function loadPartner(){
@@ -154,30 +144,12 @@ function renderMsgs(msgs){
     // Edited label
     if(m.edited&&!m.deleted)html+=`<span class="msg-edited">edited</span>`;
     // Meta: time + status
-    html+=`<div class="msg-meta">${formatTime(m.timestamp)}${mine?`<span class="msg-status ${m.seen?'seen':m.delivered?'delivered':''}">${m.seen?'✓✓':m.delivered?'✓✓':'✓'}</span>`:''}</div>`;
+    html+=`<div class="msg-meta">${formatTime(m.timestamp)}${mine?`<span class="msg-status ${m.seen?'seen':m.delivered?'delivered':''}">${m.seen?'<i class="fa-solid fa-check-double"></i>':m.delivered?'<i class="fa-solid fa-check-double"></i>':'<i class="fa-solid fa-check"></i>'}</span>`:''}</div>`;
     msg.innerHTML=html;
     // Attach image click
     const imgEl=msg.querySelector('.msg-img');
     if(imgEl)imgEl.onclick=(e)=>{e.stopPropagation();openViewer(imgEl.src)};
     wrap.appendChild(msg);
-
-    // Reactions
-    if(m.reactions&&Object.keys(m.reactions).length>0){
-      const rdiv=document.createElement('div');rdiv.className='msg-reactions';
-      const counted={};
-      Object.entries(m.reactions).forEach(([userId,emoji])=>{
-        if(!counted[emoji])counted[emoji]={count:0,mine:false};
-        counted[emoji].count++;
-        if(userId===my)counted[emoji].mine=true;
-      });
-      Object.entries(counted).forEach(([emoji,info])=>{
-        const r=document.createElement('span');r.className='msg-reaction'+(info.mine?' mine':'');
-        r.textContent=emoji+(info.count>1?' '+info.count:'');
-        r.onclick=()=>toggleReaction(m.id,emoji);
-        rdiv.appendChild(r);
-      });
-      msg.appendChild(rdiv);
-    }
 
     // Swipe to reply (touch)
     let sx=0,swiping=false;
@@ -222,9 +194,6 @@ function showMenu(m){
     if(!_ctxMsg.deleted)btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px;color:var(--danger)" onclick="closeMenu();ctxDelMe()"><i class="fa-solid fa-trash-can"></i> Delete for me</button>`;
     btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px;color:var(--danger)" onclick="closeMenu();ctxDelAll()"><i class="fa-solid fa-trash-can"></i> Delete for everyone</button>`;
   }
-  btns+=`<div style="display:flex;gap:4px;justify-content:center;padding:8px 0;border-top:1px solid var(--glass-border);margin-top:8px">`;
-  REACTIONS.forEach(r=>{btns+=`<button style="font-size:24px;width:40px;height:40px;border-radius:50%;background:transparent;border:none" onclick="closeMenu();ctxReact('${r}')">${r}</button>`});
-  btns+=`</div>`;
   menu.innerHTML=btns;document.body.appendChild(ov);document.body.appendChild(menu);
   window.closeMenu=()=>{menu.remove();ov.remove()};
 }
@@ -241,20 +210,7 @@ async function ctxPin(){const v=!_ctxMsg.pinned;await REFS.messages.child(CId).c
 async function ctxStar(){const v=!_ctxMsg.starred;await REFS.messages.child(CId).child(_ctxMsg.id).child('starred').set(v);_ctxMsg.starred=v;toast(v?'Starred':'Unstarred','success')}
 async function ctxDelMe(){if(!confirm('Delete for you?'))return;await REFS.messages.child(CId).child(_ctxMsg.id).child('deleted').set('me')}
 async function ctxDelAll(){if(!confirm('Delete for everyone?'))return;await REFS.messages.child(CId).child(_ctxMsg.id).update({deleted:'everyone',text:'',imageUrl:null})}
-function ctxReact(e){toggleReaction(_ctxMsg.id,e)}
-
-function toggleReaction(mid,emoji){
-  const my=uid();if(!CId)return;
-  REFS.messages.child(CId).child(mid).child('reactions').once('value',snap=>{
-    const r=snap.val()||{};
-    if(r[my]===emoji)delete r[my];
-    else r[my]=emoji;
-    REFS.messages.child(CId).child(mid).child('reactions').set(r);
-  });
-}
-function replyTo(text,id){reply={text,id};document.getElementById('replyBar').classList.add('show');document.getElementById('replyName').textContent='Replying';document.getElementById('replyText').textContent=text||'📷 Image';document.getElementById('chatInput').focus()}
-
-// Keep camera emoji for reply-to-image placeholder since it indicates content type
+function replyTo(text,id){reply={text,id};document.getElementById('replyBar').classList.add('show');document.getElementById('replyName').textContent='Replying';document.getElementById('replyText').innerHTML=text||'<i class="fa-solid fa-camera"></i> Image';document.getElementById('chatInput').focus()}
 function cancelReply(){reply=null;editing=null;document.getElementById('replyBar').classList.remove('show');document.getElementById('replyName').textContent='Replying'}
 function editMsg(id,t){
   editing={id,text:t};
@@ -298,31 +254,6 @@ async function sendMsg(){
 }
 function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg()};document.getElementById('sendBtn').disabled=!e.target.value.trim()}
 function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,110)+'px'}
-function toggleEmoji(){document.getElementById('emojiPicker').classList.toggle('active');if(document.getElementById('emojiPicker').classList.contains('active'))document.getElementById('emojiSearch').focus()}
-function insertEmoji(e){
-  const i=document.getElementById('chatInput');i.value+=e;i.focus();autoResize(i);document.getElementById('sendBtn').disabled=false;
-  saveRecentEmoji(e);
-}
-function filterEmojis(q){
-  document.querySelectorAll('#emojiGrid .emoji-btn').forEach(b=>{
-    b.style.display=!q||b.dataset.emoji.includes(q)?'':'none';
-  });
-}
-function saveRecentEmoji(e){
-  let r=JSON.parse(localStorage.getItem('recentEmojis')||'[]');
-  r=r.filter(em=>em!==e);
-  r.unshift(e);
-  if(r.length>20)r=r.slice(0,20);
-  localStorage.setItem('recentEmojis',JSON.stringify(r));
-  loadRecentEmojis();
-}
-function loadRecentEmojis(){
-  const r=JSON.parse(localStorage.getItem('recentEmojis')||'[]');
-  const c=document.getElementById('recentEmojis');const w=document.getElementById('emojiRecent');
-  if(!r.length){w.style.display='none';return}
-  w.style.display='block';c.innerHTML='';
-  r.forEach(e=>{const b=document.createElement('button');b.textContent=e;b.className='emoji-btn';b.onclick=()=>insertEmoji(e);c.appendChild(b)});
-}
 
 async function handleImage(ev){
   const f=ev.target.files[0];if(!f||f.size>5*1024*1024){toast('Image too large','error');return}
