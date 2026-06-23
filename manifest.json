@@ -2,12 +2,12 @@
   "name": "SEVEN - SaYeM Love",
   "short_name": "SEVEN",
   "description": "SaYeM Love Chat Application",
-  "start_url": "/chat-app/index.html",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0a0f",
   "theme_color": "#0a0a0f",
   "orientation": "portrait",
-  "scope": "/chat-app/",
+  "scope": "/",
   "icons": [
     {
       "src": "assets/icons/icon-72.svg",
@@ -63,14 +63,14 @@
       "name": "New Chat",
       "short_name": "Chat",
       "description": "Start a new conversation",
-      "url": "/chat-app/pages/chat.html",
+      "url": "/pages/chat.html",
       "icons": [{ "src": "assets/icons/icon-96.svg", "sizes": "96x96" }]
     },
     {
       "name": "Profile",
       "short_name": "Profile",
       "description": "View your profile",
-      "url": "/chat-app/pages/profile.html",
+      "url": "/pages/profile.html",
       "icons": [{ "src": "assets/icons/icon-96.svg", "sizes": "96x96" }]
     }
   ],
