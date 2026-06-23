@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='36' fill='%2300A884'/%3E%3Ctext x='96' y='130' font-size='130' font-weight='900' text-anchor='middle' fill='%23FFFFFF' font-family='sans-serif'%3ES%3C/text%3E%3C/svg%3E" sizes="192x192">
 <title>SEVEN</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -412,8 +413,16 @@ async function saveBio(){
 async function handlePfpChange(e){
   const f=e.target.files[0];if(!f)return;
   if(f.size>5*1024*1024){toast('Image too large','error');return}
-  const url=await updateProfileImage(f);
-  if(url){document.getElementById('pfpImg').src=url;document.getElementById('pfpImg').style.display='block';document.getElementById('pfpPlaceholder').style.display='none'}
+  const wrap=document.querySelector('#tabProfile .profile-card > div:first-child');
+  const prog=document.createElement('div');prog.className='upload-progress upload-progress-avatar';
+  const bar=document.createElement('div');bar.className='upload-progress-bar';bar.style.width='0%';
+  prog.appendChild(bar);wrap.after(prog);
+  const url=await updateProfileImage(f,(loaded,total)=>{
+    const pct=Math.min(100,Math.round(loaded/total*100));
+    bar.style.width=pct+'%';
+  });
+  if(url){bar.classList.add('done');setTimeout(()=>prog.remove(),600);document.getElementById('pfpImg').src=url;document.getElementById('pfpImg').style.display='block';document.getElementById('pfpPlaceholder').style.display='none'}
+  else{prog.remove();toast('Upload failed','error')}
 }
 
 // ===== SETTINGS TAB =====

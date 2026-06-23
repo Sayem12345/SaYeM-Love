@@ -1,5 +1,5 @@
-const C='seven-v3';
-const F=['/','index.html','login.html','registration.html','home.html','chat.html','settings.html','css/style.css','css/dark.css','css/mobile.css','js/firebase.js','js/app.js','js/auth.js','js/chat.js','js/search.js','js/notifications.js','manifest.json'];
+const C='seven-v4';
+const F=['/','index.html','login.html','registration.html','home.html','chat.html','settings.html','profile.html','css/style.css','css/dark.css','css/mobile.css','js/firebase.js','js/app.js','js/auth.js','js/chat.js','js/search.js','js/notifications.js','js/profile.js','manifest.json'];
 
 self.addEventListener('install',e=>{
   e.waitUntil(caches.open(C).then(c=>c.addAll(F)).then(()=>self.skipWaiting()));

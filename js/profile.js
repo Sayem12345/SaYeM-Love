@@ -55,11 +55,11 @@ async function updateProfile(data){
 }
 
 // ===== UPDATE PROFILE IMAGE =====
-async function updateProfileImage(blob){
+async function updateProfileImage(blob,onProgress){
   const uid=localStorage.getItem('uid');
   if(!uid)return;
   try{
-    const url=await ghUpload('uploads/profiles/'+uid+'.jpg',blob,'Profile update');
+    const url=await ghUpload('uploads/profiles/'+uid+'.jpg',blob,'Profile update',onProgress);
     await updateProfile({profileImage:url});
     return url;
   }catch(e){toast('Image upload failed','error');return null}

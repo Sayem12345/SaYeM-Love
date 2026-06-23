@@ -66,7 +66,7 @@ function generateId(){
 }
 
 // ===== GITHUB UPLOAD =====
-async function ghUpload(path,blob,msg){
+async function ghUpload(path,blob,msg,onProgress){
   const b64=await blobToBase64(blob);
   const p=b64.split(',')[1];
   let sha=null;
@@ -79,9 +79,20 @@ async function ghUpload(path,blob,msg){
   const u='https://api.github.com/repos/'+GH.owner+'/'+GH.repo+'/contents/'+path;
   const body={message:msg||'Upload '+path,content:p,branch:GH.branch};
   if(sha)body.sha=sha;
-  const r=await fetch(u,{method:'PUT',headers:{'Authorization':'Bearer '+GH.token,'Accept':'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify(body)});
-  if(!r.ok)throw new Error('Upload failed: '+r.status);
-  return GH.raw+'/'+path;
+  return new Promise((resolve,reject)=>{
+    const xhr=new XMLHttpRequest();
+    xhr.open('PUT',u);
+    xhr.setRequestHeader('Authorization','Bearer '+GH.token);
+    xhr.setRequestHeader('Accept','application/vnd.github+json');
+    xhr.setRequestHeader('Content-Type','application/json');
+    xhr.upload.onprogress=e=>{if(onProgress&&e.lengthComputable)onProgress(e.loaded,e.total)};
+    xhr.onload=()=>{
+      if(xhr.status>=200&&xhr.status<300)resolve(GH.raw+'/'+path);
+      else reject(new Error('Upload failed: '+xhr.status));
+    };
+    xhr.onerror=()=>reject(new Error('Upload failed'));
+    xhr.send(JSON.stringify(body));
+  });
 }
 
 function blobToBase64(blob){
@@ -100,11 +111,11 @@ async function updateProfile(data){
   try{await REFS.users.child(myId).update(data);toast('Profile updated','success')}
   catch(e){toast('Update failed','error')}
 }
-async function updateProfileImage(blob){
+async function updateProfileImage(blob,onProgress){
   const myId=uid();
   if(!myId||!blob)return null;
   try{
-    const url=await ghUpload('uploads/profiles/'+myId+'.jpg',blob,'Profile update');
+    const url=await ghUpload('uploads/profiles/'+myId+'.jpg',blob,'Profile update',onProgress);
     if(url)await REFS.users.child(myId).update({profileImage:url});
     toast('Photo updated','success');
     return url;
@@ -139,6 +150,7 @@ document.addEventListener('DOMContentLoaded',initSounds);
 if('serviceWorker'in navigator){
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('service-worker.js').catch(()=>{});
+    navigator.serviceWorker.register('firebase-messaging-sw.js').catch(()=>{});
   });
 }
 

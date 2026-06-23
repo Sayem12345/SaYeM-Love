@@ -255,11 +255,11 @@ function getMyChats(callback){
 }
 
 // ===== IMAGE UPLOAD =====
-async function uploadChatImage(chatId,blob){
+async function uploadChatImage(chatId,blob,onProgress){
   try{
     const ext=blob.type==='image/png'?'png':'jpg';
     const name=generateId()+'.'+ext;
-    return await ghUpload('uploads/chats/'+chatId+'/'+name,blob,'Chat image');
+    return await ghUpload('uploads/chats/'+chatId+'/'+name,blob,'Chat image',onProgress);
   }catch(e){toast('Image upload failed','error');return null}
 }
 

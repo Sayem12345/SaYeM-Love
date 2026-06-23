@@ -86,17 +86,17 @@ img{max-width:100%;display:block}
 .msg-wrap.sent{align-self:flex-end;align-items:flex-end}
 .msg-wrap.rcvd{align-self:flex-start;align-items:flex-start}
 @keyframes msgSlide{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.msg{position:relative;padding:7px 9px 6px;font-size:14px;line-height:1.4;word-wrap:break-word;white-space:pre-wrap}
+.msg{position:relative;padding:7px 9px 6px;font-size:14px;line-height:1.4;word-wrap:break-word}
 .msg.sent{background:var(--wa-msg-sent);color:#fff;border-radius:8px 0 8px 8px;border-top-right-radius:0}
 .msg.rcvd{background:var(--wa-msg-rcvd);color:var(--text);border-radius:0 8px 8px 8px;border-top-left-radius:0}
 .msg-tail{position:absolute;top:0;width:8px;height:8px}
 .msg.sent .msg-tail{right:-8px;border-left:8px solid var(--wa-msg-sent);border-bottom:8px solid transparent}
 .msg.rcvd .msg-tail{left:-8px;border-right:8px solid var(--wa-msg-rcvd);border-bottom:8px solid transparent}
-.msg-text{margin-right:40px}
+.msg-text{display:inline;white-space:pre-wrap;word-break:break-word}
 .msg-img{border-radius:6px;max-width:240px;cursor:pointer;margin:1px 0 3px;display:block}
-.msg-meta{display:flex;align-items:center;gap:3px;position:absolute;bottom:4px;right:5px;font-size:10px;color:rgba(255,255,255,.6);line-height:1}
+.msg-meta{display:inline-flex;align-items:center;gap:3px;font-size:10px;color:rgba(255,255,255,.6);line-height:1;vertical-align:bottom;white-space:nowrap;margin-left:4px}
 .msg.rcvd .msg-meta{color:var(--text3)}
-.msg-status{font-size:10px;margin-right:2px}
+.msg-status{font-size:10px;margin-right:2px;vertical-align:bottom}
 .msg-status.delivered{color:var(--text3)}
 .msg-status.seen{color:#53BDEB}
 .msg-edited{font-size:10px;color:rgba(255,255,255,.45);margin-right:2px;font-style:italic}
@@ -262,6 +262,12 @@ img{max-width:100%;display:block}
 /* ===== FORWARD MODAL ===== */
 .forward-user{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);cursor:pointer;transition:background var(--transition)}
 .forward-user:active{background:var(--bg3)}
+
+/* ===== UPLOAD PROGRESS ===== */
+.upload-progress{height:3px;background:var(--bg3);border-radius:2px;overflow:hidden}
+.upload-progress-bar{height:100%;width:0%;background:var(--primary);border-radius:2px;transition:width .2s ease}
+.upload-progress-bar.done{background:var(--success)}
+.upload-progress-avatar{width:80%;max-width:200px;margin:6px auto 0}
 
 /* ===== DATE SEPARATOR ===== */
 .date-sep{text-align:center;font-size:11px;color:var(--text3);padding:6px 0;margin:4px 0}
