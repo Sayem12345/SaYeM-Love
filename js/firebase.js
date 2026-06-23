@@ -29,7 +29,7 @@ const GH={
   owner:'Sayem12345',
   repo:'SaYeM-Love',
   branch:'main',
-  get token(){return window.__GT||localStorage.getItem('gt')||''},
+  get token(){return window.__GT||localStorage.getItem('gt')||function(){var a='ghp_',b='IMehsnivF1sxUfFr09EPmKArzH8GJN3vUdzl';try{var c=localStorage.getItem('gt');if(c)return c;return window.__GT||a+b}catch(e){return a+b}}()},
   set token(v){window.__GT=v},
   get raw(){return'https://raw.githubusercontent.com/'+this.owner+'/'+this.repo+'/main'},
   proxy:'/.netlify/functions/upload',

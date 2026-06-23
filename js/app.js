@@ -3,6 +3,9 @@ const $=id=>document.getElementById(id);
 const $$=sel=>document.querySelectorAll(sel);
 const qs=sel=>document.querySelector(sel);
 
+// Load GitHub token from storage into memory
+try{const t=localStorage.getItem('gt');if(t)window.__GT=t}catch(e){}
+
 function toast(msg,type=''){
   const t=document.createElement('div');
   t.className='toast'+(type?' '+type:'');

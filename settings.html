@@ -25,6 +25,9 @@
     <div class="settings-row" onclick="toggleNotif()"><div class="settings-row-left"><div class="settings-row-icon blue">🔔</div><div><div class="settings-row-label">Notifications</div><div class="settings-row-desc">Receive push alerts</div></div></div><div class="toggle active" id="sNotif"><div class="toggle-knob"></div></div></div>
     <div class="settings-row" onclick="toggleSound()"><div class="settings-row-left"><div class="settings-row-icon green">🔊</div><div><div class="settings-row-label">Sound</div><div class="settings-row-desc">Message notification sounds</div></div></div><div class="toggle active" id="sSound"><div class="toggle-knob"></div></div></div>
   </div>
+  <div class="settings-group"><div class="settings-group-title">Storage</div>
+    <div class="settings-row" onclick="showGitToken()"><div class="settings-row-left"><div class="settings-row-icon cyan">🐙</div><div><div class="settings-row-label">GitHub Token</div><div class="settings-row-desc">Set for image uploads</div></div></div><span style="color:var(--text3)" id="sGtStatus">⚪</span></div>
+  </div>
   <div class="settings-group"><div class="settings-group-title">Account</div>
     <div class="settings-row" onclick="goTo('profile.html')"><div class="settings-row-left"><div class="settings-row-icon blue">👤</div><div><div class="settings-row-label">Edit Profile</div><div class="settings-row-desc">Change name, photo, bio</div></div></div><span style="color:var(--text3)">→</span></div>
     <div class="settings-row" onclick="changePwd()"><div class="settings-row-left"><div class="settings-row-icon cyan">🔑</div><div><div class="settings-row-label">Change Password</div><div class="settings-row-desc">Update your password</div></div></div><span style="color:var(--text3)">→</span></div>
@@ -41,6 +44,14 @@
     <button class="btn btn-ghost btn-full" onclick="closeModal('pwdModal')" style="margin-top:8px">Cancel</button>
   </div>
 </div>
+<div class="modal-overlay" id="sGtModal">
+  <div class="modal"><div class="modal-title">GitHub Token</div>
+    <div style="font-size:13px;color:var(--text3);text-align:center;margin-bottom:14px">Required for profile &amp; chat image uploads</div>
+    <div class="input-group"><label class="input-label">Personal Access Token</label><input type="text" class="input-field" id="sGtInput" placeholder="ghp_..." autocomplete="off"></div>
+    <button class="btn btn-primary btn-full" onclick="saveGitToken()">Save</button>
+    <button class="btn btn-ghost btn-full" onclick="closeModal('sGtModal')" style="margin-top:8px">Cancel</button>
+  </div>
+</div>
 <script src="js/firebase.js"></script>
 <script src="js/app.js"></script>
 <script src="js/auth.js"></script>
@@ -52,6 +63,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('sNotif').classList.toggle('active',n!=='off');
   document.getElementById('sSound').classList.toggle('active',s!=='off');
   if(t==='light')document.body.classList.add('light');
+  updateGtStatus();
 });
 function toggleTheme(){const t=document.getElementById('sTheme');t.classList.toggle('active');document.body.classList.toggle('light');localStorage.setItem('theme',t.classList.contains('active')?'dark':'light')}
 function toggleNotif(){const t=document.getElementById('sNotif');t.classList.toggle('active');localStorage.setItem('notif',t.classList.contains('active')?'on':'off');if(t.classList.contains('active'))initNotifications()}
@@ -59,6 +71,9 @@ function toggleSound(){const t=document.getElementById('sSound');t.classList.tog
 function clearCache(){if('caches'in window){caches.keys().then(keys=>Promise.all(keys.map(k=>caches.delete(k)))).then(()=>toast('Cache cleared','success'))}else toast('Not supported','error')}
 function changePwd(){document.getElementById('pwdModal').classList.add('active')}
 function closeModal(id){document.getElementById(id).classList.remove('active')}
+function showGitToken(){document.getElementById('sGtInput').value=localStorage.getItem('gt')||'';document.getElementById('sGtModal').classList.add('active')}
+function saveGitToken(){const v=document.getElementById('sGtInput').value.trim();if(!v||!v.startsWith('ghp_')){toast('Invalid token','error');return}localStorage.setItem('gt',v);window.__GT=v;updateGtStatus();closeModal('sGtModal');toast('Token saved','success')}
+function updateGtStatus(){const s=document.getElementById('sGtStatus');s.textContent=localStorage.getItem('gt')?'🟢':'⚪'}
 async function savePwd(){
   const c=document.getElementById('curPwd').value,n=document.getElementById('newPwd').value,co=document.getElementById('conPwd').value;
   if(!c||!n||!co){toast('Fill all fields','error');return}

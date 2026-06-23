@@ -106,6 +106,13 @@
         </div>
       </div>
       <div class="settings-group">
+        <div class="settings-group-title">Storage</div>
+        <div class="settings-row" onclick="showGitToken()">
+          <div class="settings-row-left"><div class="settings-row-icon cyan">🐙</div><div><div class="settings-row-label">GitHub Token</div><div class="settings-row-desc">Set for image upload access</div></div></div>
+          <span style="color:var(--text3)" id="gtStatus">⚪</span>
+        </div>
+      </div>
+      <div class="settings-group">
         <div class="settings-group-title">Account</div>
         <div class="settings-row" onclick="goTo('profile.html')">
           <div class="settings-row-left"><div class="settings-row-icon blue">👤</div><div><div class="settings-row-label">Edit Profile</div><div class="settings-row-desc">Change name, photo, bio</div></div></div>
@@ -162,6 +169,17 @@
     <div class="input-group"><label class="input-label">Confirm</label><input type="password" class="input-field" id="conPwd" placeholder="Confirm password"></div>
     <button class="btn btn-primary btn-full" onclick="savePwd()">Save</button>
     <button class="btn btn-ghost btn-full" onclick="closeModal('pwdModal')" style="margin-top:8px">Cancel</button>
+  </div>
+</div>
+
+<!-- GITHUB TOKEN MODAL -->
+<div class="modal-overlay" id="gtModal">
+  <div class="modal">
+    <div class="modal-title">GitHub Token</div>
+    <div style="font-size:13px;color:var(--text3);text-align:center;margin-bottom:14px">Required for profile &amp; chat image uploads via GitHub API</div>
+    <div class="input-group"><label class="input-label">Personal Access Token</label><input type="text" class="input-field" id="gtInput" placeholder="ghp_..." autocomplete="off"></div>
+    <button class="btn btn-primary btn-full" onclick="saveGitToken()">Save</button>
+    <button class="btn btn-ghost btn-full" onclick="closeModal('gtModal')" style="margin-top:8px">Cancel</button>
   </div>
 </div>
 
@@ -331,6 +349,7 @@ function loadTabSettings(){
   document.getElementById('notifToggle').classList.toggle('active',n!=='off');
   document.getElementById('soundToggle').classList.toggle('active',s!=='off');
   if(t==='light')document.body.classList.add('light');
+  updateGtStatus();
 }
 
 function toggleTheme(){
@@ -422,6 +441,24 @@ function searchUsersNewChat(q){
   });
 }
 
+function showGitToken(){
+  document.getElementById('gtInput').value=localStorage.getItem('gt')||'';
+  document.getElementById('gtModal').classList.add('active');
+}
+function saveGitToken(){
+  const v=document.getElementById('gtInput').value.trim();
+  if(!v||!v.startsWith('ghp_')){toast('Invalid token format','error');return}
+  localStorage.setItem('gt',v);
+  window.__GT=v;
+  updateGtStatus();
+  closeModal('gtModal');
+  toast('Token saved','success');
+}
+function updateGtStatus(){
+  const s=document.getElementById('gtStatus');
+  const t=localStorage.getItem('gt');
+  s.textContent=t?'🟢':'⚪';
+}
 async function logout(){
   if(!confirm('Logout from SEVEN?'))return;
   const uid=localStorage.getItem('uid');
