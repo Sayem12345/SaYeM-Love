@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Chat - SEVEN</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/chat.css">
+</head>
+<body>
+  <div id="chatApp">
+    <div id="chatListView" class="view active">
+      <header class="chat-header glass">
+        <div class="header-left">
+          <h1 class="header-brand">SEVEN</h1>
+        </div>
+        <div class="header-right">
+          <button class="header-btn" onclick="showSearchModal()" title="Search Users">
+            <i class="fas fa-search"></i>
+          </button>
+          <button class="header-btn" onclick="navigateToProfile()" title="Profile">
+            <i class="fas fa-user-circle"></i>
+          </button>
+          <button class="header-btn" onclick="handleLogout()" title="Logout">
+            <i class="fas fa-sign-out-alt"></i>
+          </button>
+        </div>
+      </header>
+      <div class="chat-list-container">
+        <div id="chatList" class="chat-list"></div>
+        <div id="emptyChats" class="empty-state" style="display:none">
+          <div class="empty-icon">
+            <i class="fas fa-comments"></i>
+          </div>
+          <h3>No Conversations</h3>
+          <p>Search for users to start chatting</p>
+          <button class="empty-btn glass" onclick="showSearchModal()">
+            <i class="fas fa-search"></i> Find Friends
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="conversationView" class="view">
+      <header class="conversation-header glass">
+        <button class="header-btn back-btn" onclick="closeConversation()">
+          <i class="fas fa-arrow-left"></i>
+        </button>
+        <div class="conversation-user-info" onclick="showUserProfile()">
+          <div class="conv-avatar">
+            <img id="convAvatar" src="../assets/images/default-avatar.png" alt="avatar">
+            <span id="convOnlineStatus" class="online-dot"></span>
+          </div>
+          <div class="conv-details">
+            <h3 id="convName">User</h3>
+            <span id="convStatus" class="conv-status">offline</span>
+          </div>
+        </div>
+        <div class="header-right">
+          <button class="header-btn" onclick="showSearchModal()" title="Search">
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
+      </header>
+      <div id="messagesContainer" class="messages-container">
+        <div id="messagesList" class="messages-list"></div>
+        <div id="typingIndicator" class="typing-indicator" style="display:none">
+          <span class="typing-dots"><span></span><span></span><span></span></span>
+          <span id="typingText">typing...</span>
+        </div>
+      </div>
+      <div class="composer glass">
+        <div id="replyPreview" class="reply-preview" style="display:none">
+          <div class="reply-content">
+            <span class="reply-label">Replying</span>
+            <span id="replyText" class="reply-text"></span>
+          </div>
+          <button class="reply-close" onclick="cancelReply()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="composer-input-area">
+          <button class="composer-btn" onclick="document.getElementById('imageInput').click()" title="Send Image">
+            <i class="fas fa-image"></i>
+          </button>
+          <input type="file" id="imageInput" accept="image/*" style="display:none" onchange="handleImageSelect(event)">
+          <div class="composer-input-wrapper">
+            <textarea id="messageInput" class="composer-input" rows="1" placeholder="Type a message..." oninput="autoResize(this); handleTyping()"></textarea>
+          </div>
+          <button class="composer-btn send-btn" id="sendBtn" onclick="sendMessage()">
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="searchModal" class="modal-overlay" style="display:none" onclick="closeSearchModal(event)">
+    <div class="modal-content glass" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Search Users</h2>
+        <button class="modal-close" onclick="closeSearchModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="search-input-wrapper">
+        <i class="fas fa-search search-input-icon"></i>
+        <input type="text" id="searchInput" class="search-input" placeholder="Search by username..." oninput="debounceSearch(this.value)">
+      </div>
+      <div id="searchResults" class="search-results"></div>
+    </div>
+  </div>
+
+  <div id="imagePreviewModal" class="modal-overlay" style="display:none" onclick="closeImagePreview(event)">
+    <div class="image-preview-container" onclick="event.stopPropagation()">
+      <button class="modal-close image-preview-close" onclick="closeImagePreview()">
+        <i class="fas fa-times"></i>
+      </button>
+      <img id="fullscreenImage" class="fullscreen-image" src="" alt="preview">
+      <div class="image-preview-actions">
+        <button class="preview-action-btn" onclick="downloadImage()">
+          <i class="fas fa-download"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="userProfileModal" class="modal-overlay" style="display:none" onclick="closeUserProfile(event)">
+    <div class="modal-content glass modal-sm" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2>User Info</h2>
+        <button class="modal-close" onclick="closeUserProfile()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="user-profile-card">
+        <div class="user-profile-avatar">
+          <img id="userProfileAvatar" src="../assets/images/default-avatar.png" alt="">
+        </div>
+        <h3 id="userProfileName">-</h3>
+        <p class="user-profile-username">@<span id="userProfileUsername">-</span></p>
+        <div class="user-profile-status">
+          <span id="userProfileOnline" class="status-badge online-badge" style="display:none">
+            <i class="fas fa-circle"></i> Online
+          </span>
+          <span id="userProfileOffline" class="status-badge offline-badge">
+            <i class="fas fa-circle"></i> Offline
+          </span>
+        </div>
+        <p class="user-profile-lastseen">Last seen: <span id="userProfileLastSeen">-</span></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
+  <script src="../js/firebase-config.js"></script>
+  <script src="../js/utils.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/github-storage.js"></script>
+  <script src="../js/search.js"></script>
+  <script src="../js/chat.js"></script>
+  <script src="../js/notification.js"></script>
+</body>
+</html>

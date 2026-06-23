@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Profile - SEVEN</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/profile.css">
+</head>
+<body>
+  <div class="profile-page">
+    <header class="profile-header glass">
+      <button class="header-btn" onclick="goBack()">
+        <i class="fas fa-arrow-left"></i>
+      </button>
+      <h1>Profile</h1>
+      <button class="header-btn" onclick="navigateSettings()">
+        <i class="fas fa-cog"></i>
+      </button>
+    </header>
+    <div class="profile-content">
+      <div class="profile-avatar-section glass">
+        <div class="profile-avatar-wrapper">
+          <img id="profileAvatar" src="../assets/images/default-avatar.png" alt="Profile" class="profile-avatar">
+          <button class="avatar-edit-btn" onclick="document.getElementById('avatarInput').click()">
+            <i class="fas fa-camera"></i>
+          </button>
+          <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="handleAvatarChange(event)">
+        </div>
+      </div>
+      <div class="profile-info-section glass">
+        <div class="profile-field">
+          <label class="field-label">Full Name</label>
+          <div class="field-input-group">
+            <input type="text" id="profileName" class="profile-input" placeholder="Your full name">
+            <button class="field-edit-btn" onclick="enableEdit('profileName')">
+              <i class="fas fa-pen"></i>
+            </button>
+          </div>
+        </div>
+        <div class="profile-field">
+          <label class="field-label">Username</label>
+          <div class="field-input-group">
+            <input type="text" id="profileUsername" class="profile-input" placeholder="Username" readonly>
+            <button class="field-edit-btn" onclick="enableEdit('profileUsername')">
+              <i class="fas fa-pen"></i>
+            </button>
+          </div>
+          <div id="profileUsernameStatus" class="field-status"></div>
+        </div>
+        <div class="profile-field">
+          <label class="field-label">Password</label>
+          <div class="field-input-group">
+            <input type="password" id="profilePassword" class="profile-input" placeholder="New password">
+            <button class="field-edit-btn" onclick="enableEdit('profilePassword')">
+              <i class="fas fa-pen"></i>
+            </button>
+          </div>
+        </div>
+        <div class="profile-field">
+          <label class="field-label">Confirm Password</label>
+          <div class="field-input-group">
+            <input type="password" id="profileConfirmPassword" class="profile-input" placeholder="Confirm new password">
+          </div>
+        </div>
+        <button class="save-btn glass" onclick="saveProfile()">
+          <i class="fas fa-check"></i> Save Changes
+        </button>
+      </div>
+      <div class="profile-danger-section glass">
+        <button class="danger-btn" onclick="handleLogout()">
+          <i class="fas fa-sign-out-alt"></i> Sign Out
+        </button>
+      </div>
+    </div>
+  </div>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
+  <script src="../js/firebase-config.js"></script>
+  <script src="../js/utils.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/github-storage.js"></script>
+  <script src="../js/profile.js"></script>
+</body>
+</html>
