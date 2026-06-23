@@ -1,112 +1,60 @@
-document.addEventListener('DOMContentLoaded', () => {
-  if (checkAuth()) {
-    window.location.href = '../index.html';
-    return;
-  }
-  const usernameInput = document.getElementById('regUsername');
-  const passwordInput = document.getElementById('regPassword');
-  const confirmInput = document.getElementById('regConfirmPassword');
-
-  usernameInput.addEventListener('input', debounce(checkUsername, 500));
-  passwordInput.addEventListener('input', checkPasswordStrength);
-  confirmInput.addEventListener('input', checkPasswordMatch);
-
-  document.getElementById('registerForm').addEventListener('submit', handleRegister);
+document.addEventListener('DOMContentLoaded',()=>{
+  if(checkAuth()){location.href='../index.html';return}
+  document.getElementById('regUsername').addEventListener('input',debounce(chkUn,500));
+  document.getElementById('regPassword').addEventListener('input',chkStr);
+  document.getElementById('regConfirm').addEventListener('input',chkMatch);
+  document.getElementById('registerForm').addEventListener('submit',onReg);
 });
 
-async function checkUsername() {
-  const username = document.getElementById('regUsername').value.trim();
-  const status = document.getElementById('usernameStatus');
-  if (!username) {
-    status.textContent = '';
-    status.className = 'input-status';
-    return;
-  }
-  if (username.length < 3) {
-    status.textContent = 'Min 3 characters';
-    status.className = 'input-status taken';
-    return;
-  }
-  const available = await checkUsernameAvailability(username);
-  status.textContent = available ? 'Available' : 'Taken';
-  status.className = `input-status ${available ? 'available' : 'taken'}`;
+async function chkUn(){
+  const un=document.getElementById('regUsername').value.trim();
+  const st=document.getElementById('regUsernameStatus');
+  if(!un){st.textContent='';st.className='field-status';return}
+  if(un.length<3){st.textContent='Min 3 chars';st.className='field-status err';return}
+  const ok=await unavail(un);
+  st.textContent=ok?'Available':'Taken';
+  st.className='field-status '+(ok?'ok':'err');
 }
 
-function checkPasswordStrength() {
-  const password = document.getElementById('regPassword').value;
-  const strength = document.getElementById('passwordStrength');
-  if (!password) {
-    strength.textContent = '';
-    strength.className = 'password-strength';
-    return;
-  }
-  let score = 0;
-  if (password.length >= 6) score++;
-  if (password.length >= 10) score++;
-  if (/[A-Z]/.test(password)) score++;
-  if (/[0-9]/.test(password)) score++;
-  if (/[^A-Za-z0-9]/.test(password)) score++;
-
-  if (score <= 1) {
-    strength.textContent = 'Weak';
-    strength.className = 'password-strength weak';
-  } else if (score <= 3) {
-    strength.textContent = 'Medium';
-    strength.className = 'password-strength medium';
-  } else {
-    strength.textContent = 'Strong';
-    strength.className = 'password-strength strong';
-  }
+function chkStr(){
+  const pw=document.getElementById('regPassword').value;
+  const el=document.getElementById('regStrength');
+  if(!pw){el.textContent='';el.className='field-hint';return}
+  let s=0;
+  if(pw.length>=6)s++;if(pw.length>=10)s++;
+  if(/[A-Z]/.test(pw))s++;if(/[0-9]/.test(pw))s++;if(/[^A-Za-z0-9]/.test(pw))s++;
+  if(s<=1){el.textContent='Weak';el.className='field-hint w'}
+  else if(s<=3){el.textContent='Medium';el.className='field-hint m'}
+  else{el.textContent='Strong';el.className='field-hint s'}
 }
 
-function checkPasswordMatch() {
-  const password = document.getElementById('regPassword').value;
-  const confirm = document.getElementById('regConfirmPassword').value;
-  const status = document.getElementById('passwordStrength');
-  if (!confirm) return;
-  if (password !== confirm) {
-    status.textContent = 'Passwords do not match';
-    status.className = 'password-strength weak';
-  } else {
-    checkPasswordStrength();
-  }
+function chkMatch(){
+  const pw=document.getElementById('regPassword').value;
+  const cf=document.getElementById('regConfirm').value;
+  const el=document.getElementById('regStrength');
+  if(!cf)return;
+  if(pw!==cf){el.textContent='Passwords do not match';el.className='field-hint w'}
+  else chkStr();
 }
 
-async function handleRegister(e) {
+async function onReg(e){
   e.preventDefault();
-  const fullName = document.getElementById('regFullName').value.trim();
-  const username = document.getElementById('regUsername').value.trim();
-  const password = document.getElementById('regPassword').value;
-  const confirm = document.getElementById('regConfirmPassword').value;
-  const btn = document.getElementById('registerBtn');
-
-  if (!fullName || !username || !password || !confirm) {
-    showToast('Please fill all fields', 'error');
-    return;
-  }
-  if (password !== confirm) {
-    showToast('Passwords do not match', 'error');
-    return;
-  }
-  if (password.length < 6) {
-    showToast('Password must be at least 6 characters', 'error');
-    return;
-  }
-  if (username.length < 3) {
-    showToast('Username must be at least 3 characters', 'error');
-    return;
-  }
-
-  showLoading(btn);
-
-  try {
-    await registerUser(fullName, username, password);
-    showToast('Account created!', 'success');
-    setTimeout(() => {
-      window.location.href = '../index.html';
-    }, 500);
-  } catch (error) {
-    showToast(error, 'error');
-    hideLoading(btn);
+  const name=document.getElementById('regName').value.trim();
+  const un=document.getElementById('regUsername').value.trim();
+  const pw=document.getElementById('regPassword').value;
+  const cf=document.getElementById('regConfirm').value;
+  const btn=document.getElementById('registerBtn');
+  if(!name||!un||!pw||!cf){toast('Fill all fields','err');return}
+  if(pw!==cf){toast('Passwords do not match','err');return}
+  if(pw.length<6){toast('Password too short (min 6)','err');return}
+  if(un.length<3){toast('Username too short (min 3)','err');return}
+  btnLoad(btn,true);
+  try{
+    await registerUser(name,un,pw);
+    toast('Account created!','ok');
+    setTimeout(()=>location.href='../index.html',400);
+  }catch(err){
+    toast(err,'err');
+    btnLoad(btn,false);
   }
 }

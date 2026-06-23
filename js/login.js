@@ -1,32 +1,21 @@
-document.addEventListener('DOMContentLoaded', () => {
-  if (checkAuth()) {
-    window.location.href = '../index.html';
-    return;
-  }
-  document.getElementById('loginForm').addEventListener('submit', handleLogin);
+document.addEventListener('DOMContentLoaded',()=>{
+  if(checkAuth()){location.href='../index.html';return}
+  document.getElementById('loginForm').addEventListener('submit',onLogin);
 });
 
-async function handleLogin(e) {
+async function onLogin(e){
   e.preventDefault();
-  const username = document.getElementById('loginUsername').value.trim();
-  const password = document.getElementById('loginPassword').value;
-  const btn = document.getElementById('loginBtn');
-
-  if (!username || !password) {
-    showToast('Please fill all fields', 'error');
-    return;
-  }
-
-  showLoading(btn);
-
-  try {
-    await loginUser(username, password);
-    showToast('Welcome back!', 'success');
-    setTimeout(() => {
-      window.location.href = '../index.html';
-    }, 500);
-  } catch (error) {
-    showToast(error, 'error');
-    hideLoading(btn);
+  const un=document.getElementById('loginUsername').value.trim();
+  const pw=document.getElementById('loginPassword').value;
+  const btn=document.getElementById('loginBtn');
+  if(!un||!pw){toast('Fill all fields','err');return}
+  btnLoad(btn,true);
+  try{
+    await loginUser(un,pw);
+    toast('Welcome back!','ok');
+    setTimeout(()=>location.href='../index.html',400);
+  }catch(err){
+    toast(err,'err');
+    btnLoad(btn,false);
   }
 }

@@ -1,1 +1,1 @@
-const GITHUB_TOKEN = "your_github_personal_access_token_here";
+const GITHUB_TOKEN = "ghp_xxxYourGitHubPersonalAccessTokenHere";

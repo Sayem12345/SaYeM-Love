@@ -1,60 +1,45 @@
-let currentChatId = null;
-let currentChatPartner = null;
-let messageListener = null;
+let currentChat = null;
+let currentPartner = null;
+let replyTarget = null;
+let msgListener = null;
 let typingListener = null;
-let chatListListener = null;
-let replyToMessage = null;
+let listListener = null;
 
-document.addEventListener('DOMContentLoaded', () => {
-  if (!requireAuth()) return;
+document.addEventListener('DOMContentLoaded',()=>{
+  if(!requireAuth())return;
   loadChatList();
 });
 
-function loadChatList() {
-  const chatList = document.getElementById('chatList');
-  const emptyChats = document.getElementById('emptyChats');
-
-  if (chatListListener) removeListener(chatListListener);
-
-  chatListListener = database.ref('chats').orderByChild(`participants/${currentUserId}`).equalTo(true);
-  chatListListener.on('value', (snapshot) => {
-    const chats = [];
-    snapshot.forEach((child) => {
-      const chat = child.val();
-      chat.id = child.key;
-      if (chat.lastMessage) {
-        chats.push(chat);
-      }
-    });
-
-    chats.sort((a, b) => (b.lastMessage?.timestamp || 0) - (a.lastMessage?.timestamp || 0));
-
-    if (chats.length === 0) {
-      chatList.innerHTML = '';
-      emptyChats.style.display = 'flex';
-      return;
-    }
-
-    emptyChats.style.display = 'none';
-    chatList.innerHTML = chats.map(chat => {
-      const partnerId = Object.keys(chat.participants || {}).find(id => id !== currentUserId);
-      const isOnline = chat.participantStatus?.[partnerId]?.online;
-      const unread = chat.unread?.[currentUserId] || 0;
+function loadChatList(){
+  const list=document.getElementById('chatList');
+  const empty=document.getElementById('emptyChats');
+  if(listListener)offRef(listListener);
+  listListener=database.ref('chats').orderByChild('participants/'+currentUserId).equalTo(true);
+  listListener.on('value',snap=>{
+    const chats=[];
+    snap.forEach(c=>{const ch=c.val();ch.id=c.key;if(ch.lastMessage)chats.push(ch)});
+    chats.sort((a,b)=>(b.lastMessage?.timestamp||0)-(a.lastMessage?.timestamp||0));
+    if(chats.length===0){list.innerHTML='';empty.style.display='flex';return}
+    empty.style.display='none';
+    list.innerHTML=chats.map(ch=>{
+      const pid=Object.keys(ch.participants||{}).find(id=>id!==currentUserId);
+      const on=ch.participantStatus?.[pid]?.online;
+      const unread=ch.unread?.[currentUserId]||0;
       return `
-        <div class="chat-item" onclick="openConversation('${chat.id}', '${partnerId}')">
-          <div class="chat-item-avatar">
-            <img src="${chat.participantData?.[partnerId]?.avatar || '../assets/images/default-avatar.png'}" alt="" onerror="this.src='../assets/images/default-avatar.png'">
-            <span class="online-dot ${isOnline ? '' : 'offline'}"></span>
+        <div class="chat-item" onclick="openChat('${ch.id}','${pid}')">
+          <div class="ch-item-av">
+            <img src="${ch.participantData?.[pid]?.avatar||'assets/images/default-avatar.svg'}" alt="" onerror="this.src='assets/images/default-avatar.svg'">
+            <span class="dot ${on?'':'off'}"></span>
           </div>
-          <div class="chat-item-info">
-            <div class="chat-item-name">
-              ${sanitizeHtml(chat.participantData?.[partnerId]?.fullName || chat.participantData?.[partnerId]?.username || 'Unknown')}
-              ${unread > 0 ? `<span class="unread-badge">${unread}</span>` : ''}
+          <div class="ch-item-info">
+            <div class="ch-item-name">
+              ${esc(ch.participantData?.[pid]?.fullName||ch.participantData?.[pid]?.username||'User')}
+              ${unread>0?`<span class="unread-badge">${unread}</span>`:''}
             </div>
-            <div class="chat-item-last">${sanitizeHtml(chat.lastMessage?.text || (chat.lastMessage?.hasImage ? 'Photo' : ''))}</div>
+            <div class="ch-item-last">${esc(ch.lastMessage?.text||(ch.lastMessage?.hasImage?'Photo':''))}</div>
           </div>
-          <div class="chat-item-meta">
-            <div class="chat-item-time">${formatTime(chat.lastMessage?.timestamp)}</div>
+          <div class="ch-item-meta">
+            <div class="ch-item-time">${fmtTime(ch.lastMessage?.timestamp)}</div>
           </div>
         </div>
       `;
@@ -62,397 +47,239 @@ function loadChatList() {
   });
 }
 
-async function openConversation(chatId, partnerId) {
-  currentChatId = chatId;
-  currentChatPartner = partnerId;
-
-  const partnerData = await getUserData(partnerId);
-  if (!partnerData) return;
-
-  document.getElementById('convAvatar').src = partnerData.avatar || '../assets/images/default-avatar.png';
-  document.getElementById('convName').textContent = partnerData.fullName || partnerData.username;
-  updatePartnerStatus(partnerData);
-
+async function openChat(chatId,partnerId){
+  currentChat=chatId;
+  currentPartner=partnerId;
+  replyTarget=null;
+  const data=await getUser(partnerId);
+  if(!data)return;
+  document.getElementById('convAvatar').src=data.avatar||'../assets/images/default-avatar.svg';
+  document.getElementById('convName').textContent=data.fullName||data.username;
+  updStatus(data);
   document.getElementById('chatListView').classList.remove('active');
-  document.getElementById('conversationView').classList.add('active');
-
+  document.getElementById('convView').classList.add('active');
   clearUnread(chatId);
   loadMessages(chatId);
-  listenTyping(chatId, partnerId);
-
-  database.ref(`chats/${chatId}/participantStatus/${partnerId}`).on('value', (s) => {
-    const status = s.val();
-    if (status) {
-      updatePartnerStatus(status);
-    }
+  listenTyping(chatId,partnerId);
+  database.ref('chats/'+chatId+'/participantStatus/'+partnerId).on('value',s=>{
+    const st=s.val();if(st)updStatus(st);
   });
 }
 
-function updatePartnerStatus(data) {
-  const isOnline = data.online === true;
-  const dot = document.getElementById('convOnlineStatus');
-  const status = document.getElementById('convStatus');
-
-  dot.className = `online-dot ${isOnline ? '' : 'offline'}`;
-  if (isOnline) {
-    status.textContent = 'Online';
-  } else {
-    status.textContent = `Last seen ${formatLastSeen(data.lastSeen)}`;
-  }
+function updStatus(data){
+  const dot=document.getElementById('convOnline');
+  const st=document.getElementById('convStatus');
+  const on=data.online===true;
+  dot.className='dot '+(on?'':'off');
+  st.textContent=on?'Online':'Last seen '+fmtLast(data.lastSeen);
 }
 
-function closeConversation() {
-  currentChatId = null;
-  currentChatPartner = null;
-  replyToMessage = null;
-
-  if (messageListener) removeListener(messageListener);
-  if (typingListener) removeListener(typingListener);
-
-  document.getElementById('conversationView').classList.remove('active');
+function closeConv(){
+  currentChat=null;currentPartner=null;replyTarget=null;
+  if(msgListener)offRef(msgListener);
+  if(typingListener)offRef(typingListener);
+  document.getElementById('convView').classList.remove('active');
   document.getElementById('chatListView').classList.add('active');
-  document.getElementById('messagesList').innerHTML = '';
-  document.getElementById('typingIndicator').style.display = 'none';
+  document.getElementById('msgList').innerHTML='';
+  document.getElementById('typingBox').style.display='none';
 }
 
-function loadMessages(chatId) {
-  if (messageListener) removeListener(messageListener);
-
-  const messagesContainer = document.getElementById('messagesContainer');
-  const messagesList = document.getElementById('messagesList');
-  messagesList.innerHTML = '';
-
-  messageListener = database.ref(`chats/${chatId}/messages`).orderByChild('timestamp').limitToLast(100);
-  messageListener.on('child_added', (snapshot) => {
-    const msg = snapshot.val();
-    msg.id = snapshot.key;
-    appendMessage(msg, chatId);
-
-    if (msg.senderId !== currentUserId) {
-      markMessageSeen(chatId, msg.id);
-    }
+function loadMessages(chatId){
+  if(msgListener)offRef(msgListener);
+  document.getElementById('msgList').innerHTML='';
+  msgListener=database.ref('chats/'+chatId+'/messages').orderByChild('timestamp').limitToLast(100);
+  msgListener.on('child_added',snap=>{
+    const msg=snap.val();msg.id=snap.key;
+    addMsg(msg,chatId);
+    if(msg.senderId!==currentUserId)markSeen(chatId,msg.id);
   });
-
-  messageListener.on('child_changed', (snapshot) => {
-    const msg = snapshot.val();
-    msg.id = snapshot.key;
-    updateMessageStatus(msg.id, msg.status);
+  msgListener.on('child_changed',snap=>{
+    const msg=snap.val();msg.id=snap.key;
+    const el=document.getElementById('msg-'+msg.id);
+    if(!el)return;
+    const se=el.querySelector('.msg-status');
+    if(se){se.innerHTML=getStatusIcon(msg.status);se.className='msg-status '+(msg.status==='seen'?'seen':'')}
   });
 }
 
-function appendMessage(msg, chatId) {
-  const messagesList = document.getElementById('messagesList');
-  const isSent = msg.senderId === currentUserId;
-
-  const existing = document.getElementById(`msg-${msg.id}`);
-  if (existing) return;
-
-  const div = document.createElement('div');
-  div.id = `msg-${msg.id}`;
-  div.className = `message ${isSent ? 'sent' : 'received'}`;
-
-  let html = '';
-
-  if (msg.replyTo) {
-    html += `<div class="reply-context">${sanitizeHtml(msg.replyTo.text || 'Photo')}</div>`;
-  }
-
-  if (msg.imageUrl) {
-    html += `<img src="${msg.imageUrl}" class="message-image" onclick="openImagePreview('${msg.imageUrl}')" alt="photo" loading="lazy">`;
-  }
-
-  if (msg.text) {
-    html += `<div class="message-text">${sanitizeHtml(msg.text)}</div>`;
-  }
-
-  const statusIcon = isSent ? getStatusIcon(msg.status) : '';
-  html += `
-    <div class="message-meta">
-      <span class="message-time">${formatTime(msg.timestamp)}</span>
-      ${statusIcon ? `<span class="message-status ${msg.status === 'seen' ? 'seen' : ''}">${statusIcon}</span>` : ''}
-    </div>
-  `;
-
-  div.innerHTML = html;
-  messagesList.appendChild(div);
-
-  scrollToBottom();
+function addMsg(msg,chatId){
+  const list=document.getElementById('msgList');
+  const sent=msg.senderId===currentUserId;
+  if(document.getElementById('msg-'+msg.id))return;
+  const div=document.createElement('div');
+  div.id='msg-'+msg.id;
+  div.className='msg '+(sent?'sent':'recv');
+  let h='';
+  if(msg.replyTo)h+=`<div class="msg-reply">${esc(msg.replyTo.text||'Photo')}</div>`;
+  if(msg.imageUrl)h+=`<img src="${msg.imageUrl}" class="msg-img" onclick="openImg('${msg.imageUrl}')" alt="" loading="lazy">`;
+  if(msg.text)h+=`<div class="msg-text">${esc(msg.text)}</div>`;
+  const si=sent?getStatusIcon(msg.status):'';
+  h+=`<div class="msg-meta"><span class="msg-time">${fmtTime(msg.timestamp)}</span>${si?`<span class="msg-status ${msg.status==='seen'?'seen':''}">${si}</span>`:''}</div>`;
+  div.innerHTML=h;
+  list.appendChild(div);
+  scrollDown();
 }
 
-function getStatusIcon(status) {
-  if (status === 'sent') return '<i class="fas fa-check" style="font-size:0.65rem"></i>';
-  if (status === 'delivered') return '<i class="fas fa-check-double" style="font-size:0.65rem"></i>';
-  if (status === 'seen') return '<i class="fas fa-check-double" style="font-size:0.65rem;color:#4fc3f7"></i>';
+function getStatusIcon(s){
+  if(s==='sent')return '<i class="fas fa-check" style="font-size:.65rem"></i>';
+  if(s==='delivered')return '<i class="fas fa-check-double" style="font-size:.65rem"></i>';
+  if(s==='seen')return '<i class="fas fa-check-double" style="font-size:.65rem;color:#4fc3f7"></i>';
   return '';
 }
 
-function updateMessageStatus(messageId, status) {
-  const el = document.getElementById(`msg-${messageId}`);
-  if (!el) return;
-  const statusEl = el.querySelector('.message-status');
-  if (statusEl) {
-    statusEl.innerHTML = getStatusIcon(status);
-    statusEl.className = `message-status ${status === 'seen' ? 'seen' : ''}`;
-  }
-}
-
-function markMessageSeen(chatId, messageId) {
-  database.ref(`chats/${chatId}/messages/${messageId}/status`).once('value', (s) => {
-    const currentStatus = s.val();
-    if (currentStatus !== 'seen') {
-      database.ref(`chats/${chatId}/messages/${messageId}/status`).set('seen');
-    }
+function markSeen(chatId,msgId){
+  database.ref('chats/'+chatId+'/messages/'+msgId+'/status').once('value',s=>{
+    if(s.val()!=='seen')database.ref('chats/'+chatId+'/messages/'+msgId+'/status').set('seen');
   });
 }
 
-async function sendMessage() {
-  const input = document.getElementById('messageInput');
-  const text = input.value.trim();
-  const imageInput = document.getElementById('imageInput');
-  const file = imageInput.files[0];
-
-  if (!text && !file) return;
-  if (!currentChatId || !currentChatPartner) return;
-
-  const messageId = generateId();
-  const messageData = {
-    id: messageId,
-    senderId: currentUserId,
-    text: text || '',
-    timestamp: Date.now(),
-    status: 'sent',
-    replyTo: replyToMessage ? {
-      text: replyToMessage.text,
-      senderId: replyToMessage.senderId
-    } : null
-  };
-
-  if (file) {
-    try {
-      const imgUrl = await uploadChatImage(file, currentChatId);
-      messageData.imageUrl = imgUrl;
-      messageData.hasImage = true;
-    } catch (error) {
-      showToast('Failed to upload image', 'error');
-      return;
-    }
-  }
-
-  input.value = '';
-  input.style.height = 'auto';
-  imageInput.value = '';
-  replyToMessage = null;
-  document.getElementById('replyPreview').style.display = 'none';
-
-  const updates = {};
-  updates[`chats/${currentChatId}/messages/${messageId}`] = messageData;
-  updates[`chats/${currentChatId}/lastMessage`] = {
-    text: text || 'Photo',
-    senderId: currentUserId,
-    timestamp: Date.now(),
-    hasImage: !!file
-  };
-  updates[`chats/${currentChatId}/unread/${currentChatPartner}`] = database.increment ? firebase.database.ServerValue.increment(1) : 1;
-
-  try {
-    await database.ref().update(updates);
-    await database.ref(`chats/${currentChatId}/messages/${messageId}/status`).set('sent');
-
-    setTimeout(async () => {
-      await database.ref(`chats/${currentChatId}/messages/${messageId}/status`).set('delivered');
-    }, 500);
-
-    const partnerData = await getUserData(currentChatPartner);
-    if (partnerData && partnerData.fcmToken) {
-      try {
-        await sendPushNotification(currentChatPartner, 'New Message',
-          `${currentUser.fullName || currentUser.username}: ${text || 'Photo'}`,
-          { chatId: currentChatId, senderId: currentUserId }
-        );
-      } catch (e) {}
-    }
-  } catch (error) {
-    showToast('Failed to send message', 'error');
-  }
-
+async function sendMsg(){
+  const input=document.getElementById('msgInput');
+  const text=input.value.trim();
+  if(!text&&!pendingImage)return;
+  if(!currentChat||!currentPartner)return;
+  const id=uid();
+  const data={id,senderId:currentUserId,text:text||'',timestamp:Date.now(),status:'sent',replyTo:replyTarget?{text:replyTarget.text,senderId:replyTarget.senderId}:null};
+  if(pendingImage){data.imageUrl=pendingImage;data.hasImage=true;pendingImage=null}
+  input.value='';input.style.height='auto';
+  replyTarget=null;document.getElementById('replyBox').style.display='none';
+  const upd={};
+  upd['chats/'+currentChat+'/messages/'+id]=data;
+  upd['chats/'+currentChat+'/lastMessage']={text:text||'Photo',senderId:currentUserId,timestamp:Date.now(),hasImage:!!data.imageUrl};
+  upd['chats/'+currentChat+'/unread/'+currentPartner]=firebase.database.ServerValue.increment(1);
+  try{
+    await database.ref().update(upd);
+    await database.ref('chats/'+currentChat+'/messages/'+id+'/status').set('sent');
+    setTimeout(()=>database.ref('chats/'+currentChat+'/messages/'+id+'/status').set('delivered'),500);
+    const pd=await getUser(currentPartner);
+    if(pd&&pd.fcmToken){try{sendPush(currentPartner,'New Message',(currentUser.fullName||currentUser.username)+': '+(text||'Photo'),{chatId:currentChat,senderId:currentUserId})}catch(e){}}
+  }catch(e){toast('Send failed','err')}
   stopTyping();
 }
 
-function scrollToBottom() {
-  const container = document.getElementById('messagesContainer');
-  requestAnimationFrame(() => {
-    container.scrollTop = container.scrollHeight;
-  });
+let pendingImage=null;
+
+function pickImage(){
+  document.getElementById('imagePick').click();
 }
 
-function clearUnread(chatId) {
-  database.ref(`chats/${chatId}/unread/${currentUserId}`).remove();
+async function sendImage(e){
+  const file=e.target.files[0];
+  if(!file)return;
+  if(!file.type.startsWith('image/')){toast('Select an image','err');return}
+  if(file.size>5*1024*1024){toast('Image too large (max 5MB)','err');return}
+  toast('Uploading...');
+  try{
+    const token=typeof GITHUB_TOKEN!=='undefined'?GITHUB_TOKEN:'';
+    if(!token){toast('GitHub token not configured','err');return}
+    const compressed=await compressImg(file);
+    const b64=await new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result.split(',')[1]);fr.readAsDataURL(compressed)});
+    const fn=Date.now()+'_'+file.name.replace(/[^a-zA-Z0-9.]/g,'_');
+    const path='chats/'+currentChat+'/'+fn;
+    const resp=await fetch('https://api.github.com/repos/Sayem12345/SaYeM-Love/contents/'+path,{
+      method:'PUT',
+      headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},
+      body:JSON.stringify({message:'Upload '+fn,content:b64,branch:'main'})
+    });
+    if(!resp.ok)throw new Error('Upload failed');
+    const d=await resp.json();
+    pendingImage='https://raw.githubusercontent.com/Sayem12345/SaYeM-Love/main/'+path;
+    sendMsg();
+  }catch(err){toast('Upload failed','err')}
 }
 
-async function startChatWith(userId, username, fullName, avatar) {
-  closeSearchModal();
+function scrollDown(){
+  requestAnimationFrame(()=>{document.getElementById('msgWrap').scrollTop=document.getElementById('msgWrap').scrollHeight});
+}
 
-  const existingChat = await findExistingChat(userId);
-  if (existingChat) {
-    openConversation(existingChat, userId);
-    return;
-  }
+function clearUnread(chatId){
+  database.ref('chats/'+chatId+'/unread/'+currentUserId).remove();
+}
 
-  const chatId = generateId();
-  const chatData = {
-    participants: {
-      [currentUserId]: true,
-      [userId]: true
-    },
-    participantStatus: {
-      [currentUserId]: { online: true },
-      [userId]: { online: false }
-    },
-    participantData: {
-      [currentUserId]: {
-        username: currentUser.username,
-        fullName: localStorage.getItem('seven_name'),
-        avatar: ''
-      },
-      [userId]: {
-        username: username,
-        fullName: fullName,
-        avatar: avatar
-      }
-    },
-    createdAt: Date.now()
+async function startChat(userId,username,fullName,avatar){
+  closeSearch();
+  const exist=await findChat(userId);
+  if(exist){openChat(exist,userId);return}
+  const id=uid();
+  const data={
+    participants:{[currentUserId]:true,[userId]:true},
+    participantStatus:{[currentUserId]:{online:true},[userId]:{online:false}},
+    participantData:{[currentUserId]:{username:currentUser.username,fullName:localStorage.getItem('sname'),avatar:''},[userId]:{username,fullName,avatar}},
+    createdAt:Date.now()
   };
-
-  try {
-    await database.ref(`chats/${chatId}`).set(chatData);
-    openConversation(chatId, userId);
-  } catch (error) {
-    showToast('Failed to create chat', 'error');
-  }
+  try{await database.ref('chats/'+id).set(data);openChat(id,userId)}
+  catch(e){toast('Failed to create chat','err')}
 }
 
-function findExistingChat(userId) {
-  return new Promise((resolve) => {
-    database.ref('chats').orderByChild(`participants/${currentUserId}`).equalTo(true).once('value', (snapshot) => {
-      let found = null;
-      snapshot.forEach((child) => {
-        const chat = child.val();
-        if (chat.participants && chat.participants[userId]) {
-          found = child.key;
-          return true;
-        }
-      });
-      resolve(found);
+function findChat(userId){
+  return new Promise(r=>{
+    database.ref('chats').orderByChild('participants/'+currentUserId).equalTo(true).once('value',snap=>{
+      let found=null;
+      snap.forEach(c=>{const ch=c.val();if(ch.participants&&ch.participants[userId]){found=c.key;return true}});
+      r(found);
     });
   });
 }
 
-function handleTyping() {
-  if (!currentChatId) return;
-  database.ref(`chats/${currentChatId}/typing/${currentUserId}`).set({
-    isTyping: true,
-    timestamp: Date.now()
-  });
-
-  clearTimeout(window._typingTimeout);
-  window._typingTimeout = setTimeout(() => stopTyping(), 2000);
+function typing(){
+  if(!currentChat)return;
+  database.ref('chats/'+currentChat+'/typing/'+currentUserId).set({isTyping:true,timestamp:Date.now()});
+  clearTimeout(window._ty);
+  window._ty=setTimeout(stopTyping,2000);
 }
 
-function stopTyping() {
-  if (!currentChatId) return;
-  database.ref(`chats/${currentChatId}/typing/${currentUserId}`).remove();
+function stopTyping(){
+  if(!currentChat)return;
+  database.ref('chats/'+currentChat+'/typing/'+currentUserId).remove();
 }
 
-function listenTyping(chatId, partnerId) {
-  if (typingListener) removeListener(typingListener);
-
-  typingListener = database.ref(`chats/${chatId}/typing/${partnerId}`);
-  typingListener.on('value', (snapshot) => {
-    const data = snapshot.val();
-    const indicator = document.getElementById('typingIndicator');
-    const typingText = document.getElementById('typingText');
-    if (data && data.isTyping) {
-      indicator.style.display = 'flex';
-      typingText.textContent = 'typing...';
-    } else {
-      indicator.style.display = 'none';
-    }
+function listenTyping(chatId,partnerId){
+  if(typingListener)offRef(typingListener);
+  typingListener=database.ref('chats/'+chatId+'/typing/'+partnerId);
+  typingListener.on('value',s=>{
+    const d=s.val();
+    const box=document.getElementById('typingBox');
+    if(d&&d.isTyping){box.style.display='flex'}else{box.style.display='none'}
   });
 }
 
-async function handleImageSelect(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  if (!file.type.startsWith('image/')) {
-    showToast('Please select an image file', 'error');
-    return;
-  }
-
-  if (file.size > 5 * 1024 * 1024) {
-    showToast('Image must be less than 5MB', 'error');
-    return;
-  }
-
-  showToast('Uploading image...', 'info');
-  await sendMessage();
+function setReply(id,text,sender){
+  replyTarget={id,text,senderId:sender};
+  document.getElementById('replyBox').style.display='flex';
+  document.getElementById('replyText').textContent=text||'Photo';
 }
 
-function openImagePreview(url) {
-  const modal = document.getElementById('imagePreviewModal');
-  const img = document.getElementById('fullscreenImage');
-  img.src = url;
-  modal.style.display = 'flex';
+function cancelReply(){replyTarget=null;document.getElementById('replyBox').style.display='none'}
+
+function openImg(url){
+  document.getElementById('fullImg').src=url;
+  document.getElementById('imgModal').style.display='flex';
 }
 
-function closeImagePreview(event) {
-  if (event && event.target !== event.currentTarget) return;
-  document.getElementById('imagePreviewModal').style.display = 'none';
-}
+function closeImg(){document.getElementById('imgModal').style.display='none'}
 
-function downloadImage() {
-  const url = document.getElementById('fullscreenImage').src;
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'image.jpg';
+function downloadImg(){
+  const a=document.createElement('a');
+  a.href=document.getElementById('fullImg').src;
+  a.download='image.jpg';
   a.click();
 }
 
-function setReply(messageId, text, senderId) {
-  replyToMessage = { id: messageId, text, senderId };
-  const preview = document.getElementById('replyPreview');
-  const replyText = document.getElementById('replyText');
-  preview.style.display = 'flex';
-  replyText.textContent = text || 'Photo';
-}
-
-function cancelReply() {
-  replyToMessage = null;
-  document.getElementById('replyPreview').style.display = 'none';
-}
-
-function showUserProfile() {
-  if (!currentChatPartner) return;
-  const modal = document.getElementById('userProfileModal');
-
-  getUserData(currentChatPartner).then((data) => {
-    if (!data) return;
-    document.getElementById('userProfileAvatar').src = data.avatar || '../assets/images/default-avatar.png';
-    document.getElementById('userProfileName').textContent = data.fullName || data.username;
-    document.getElementById('userProfileUsername').textContent = data.username;
-    document.getElementById('userProfileOnline').style.display = data.online ? 'inline-flex' : 'none';
-    document.getElementById('userProfileOffline').style.display = data.online ? 'none' : 'inline-flex';
-    document.getElementById('userProfileLastSeen').textContent = formatLastSeen(data.lastSeen);
-    modal.style.display = 'flex';
+function showUserInfo(){
+  if(!currentPartner)return;
+  const modal=document.getElementById('userModal');
+  getUser(currentPartner).then(d=>{
+    if(!d)return;
+    document.getElementById('userInfoAvatar').src=d.avatar||'../assets/images/default-avatar.svg';
+    document.getElementById('userInfoName').textContent=d.fullName||d.username;
+    document.getElementById('userInfoUsername').textContent=d.username;
+    document.getElementById('userInfoOnline').style.display=d.online?'inline-flex':'none';
+    document.getElementById('userInfoOffline').style.display=d.online?'none':'inline-flex';
+    document.getElementById('userInfoLast').textContent=fmtLast(d.lastSeen);
+    modal.style.display='flex';
   });
 }
 
-function closeUserProfile(event) {
-  if (event && event.target !== event.currentTarget) return;
-  document.getElementById('userProfileModal').style.display = 'none';
-}
+function closeUserInfo(){document.getElementById('userModal').style.display='none'}
 
-function navigateToProfile() {
-  const isInPages = window.location.pathname.includes('/pages/');
-  window.location.href = isInPages ? 'profile.html' : 'pages/profile.html';
-}
+function goProfile(){location.href='profile.html'}

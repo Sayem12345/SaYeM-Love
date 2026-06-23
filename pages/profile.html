@@ -10,71 +10,56 @@
 </head>
 <body>
   <div class="profile-page">
-    <header class="profile-header glass">
-      <button class="header-btn" onclick="goBack()">
-        <i class="fas fa-arrow-left"></i>
-      </button>
-      <h1>Profile</h1>
-      <button class="header-btn" onclick="navigateSettings()">
-        <i class="fas fa-cog"></i>
-      </button>
+    <header class="top-bar">
+      <button class="top-btn" onclick="backHome()"><i class="fas fa-arrow-left"></i></button>
+      <h1 class="top-title">Profile</h1>
+      <button class="top-btn" onclick="goSettings()"><i class="fas fa-cog"></i></button>
     </header>
-    <div class="profile-content">
-      <div class="profile-avatar-section glass">
-        <div class="profile-avatar-wrapper">
-          <img id="profileAvatar" src="../assets/images/default-avatar.png" alt="Profile" class="profile-avatar">
-          <button class="avatar-edit-btn" onclick="document.getElementById('avatarInput').click()">
-            <i class="fas fa-camera"></i>
-          </button>
-          <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="handleAvatarChange(event)">
+    <div class="profile-scroll">
+      <div class="profile-avatar-box">
+        <div class="profile-avatar-wrap">
+          <img id="profAvatar" src="../assets/images/default-avatar.svg" alt="" class="prof-avatar">
+          <button class="prof-cam" onclick="pickAvatar()"><i class="fas fa-camera"></i></button>
+          <input type="file" id="avatarPick" accept="image/*" style="display:none" onchange="changeAvatar(event)">
         </div>
       </div>
-      <div class="profile-info-section glass">
-        <div class="profile-field">
-          <label class="field-label">Full Name</label>
-          <div class="field-input-group">
-            <input type="text" id="profileName" class="profile-input" placeholder="Your full name">
-            <button class="field-edit-btn" onclick="enableEdit('profileName')">
-              <i class="fas fa-pen"></i>
-            </button>
+      <div class="profile-section">
+        <div class="prof-field">
+          <label class="prof-label">Full Name</label>
+          <div class="prof-input-group">
+            <input type="text" id="profName" class="prof-input" placeholder="Your full name">
+            <button class="prof-edit" onclick="enableEdit('profName')"><i class="fas fa-pen"></i></button>
           </div>
         </div>
-        <div class="profile-field">
-          <label class="field-label">Username</label>
-          <div class="field-input-group">
-            <input type="text" id="profileUsername" class="profile-input" placeholder="Username" readonly>
-            <button class="field-edit-btn" onclick="enableEdit('profileUsername')">
-              <i class="fas fa-pen"></i>
-            </button>
+        <div class="prof-field">
+          <label class="prof-label">Username</label>
+          <div class="prof-input-group">
+            <input type="text" id="profUsername" class="prof-input" placeholder="Username" readonly>
+            <button class="prof-edit" onclick="enableEdit('profUsername')"><i class="fas fa-pen"></i></button>
           </div>
-          <div id="profileUsernameStatus" class="field-status"></div>
+          <div id="profUsernameStatus" class="prof-status"></div>
         </div>
-        <div class="profile-field">
-          <label class="field-label">Password</label>
-          <div class="field-input-group">
-            <input type="password" id="profilePassword" class="profile-input" placeholder="New password">
-            <button class="field-edit-btn" onclick="enableEdit('profilePassword')">
-              <i class="fas fa-pen"></i>
-            </button>
+        <div class="prof-field">
+          <label class="prof-label">New Password</label>
+          <div class="prof-input-group">
+            <input type="password" id="profPass" class="prof-input" placeholder="Leave blank to keep current">
+            <button class="prof-edit" onclick="enableEdit('profPass')"><i class="fas fa-pen"></i></button>
           </div>
         </div>
-        <div class="profile-field">
-          <label class="field-label">Confirm Password</label>
-          <div class="field-input-group">
-            <input type="password" id="profileConfirmPassword" class="profile-input" placeholder="Confirm new password">
+        <div class="prof-field">
+          <label class="prof-label">Confirm Password</label>
+          <div class="prof-input-group">
+            <input type="password" id="profConfirm" class="prof-input" placeholder="Repeat new password">
           </div>
         </div>
-        <button class="save-btn glass" onclick="saveProfile()">
-          <i class="fas fa-check"></i> Save Changes
-        </button>
+        <button class="btn-save" onclick="saveProfile()"><i class="fas fa-check"></i> Save Changes</button>
       </div>
-      <div class="profile-danger-section glass">
-        <button class="danger-btn" onclick="handleLogout()">
-          <i class="fas fa-sign-out-alt"></i> Sign Out
-        </button>
+      <div class="profile-section">
+        <button class="btn-danger" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i> Sign Out</button>
       </div>
     </div>
   </div>
+
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js"></script>
@@ -83,7 +68,6 @@
   <script src="../js/firebase-config.js"></script>
   <script src="../js/utils.js"></script>
   <script src="../js/auth.js"></script>
-  <script src="../js/github-storage.js"></script>
   <script src="../js/profile.js"></script>
 </body>
 </html>
