@@ -64,6 +64,7 @@ function searchInbox(query,callback){
               const u=uSnap.val();
               results.push({
                 chatId,
+                partnerId,
                 partnerName:u?.name||'Unknown',
                 text:msg.text,
                 timestamp:msg.timestamp,

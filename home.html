@@ -61,14 +61,19 @@
     <div class="search-bar">
       <div class="search-field">
         <i class="fa-solid fa-magnifying-glass" style="font-size:14px;color:var(--text3)"></i>
-        <input type="text" id="searchInput" placeholder="Search users..." oninput="handleSearch(this.value)">
+        <input type="text" id="searchInput" placeholder="Search users, chats, messages..." oninput="handleSearch(this.value)">
+      </div>
+      <div style="display:flex;gap:4px;margin-top:8px" id="searchFilters">
+        <button class="search-filter active" data-filter="users" onclick="setSearchFilter('users')">Users</button>
+        <button class="search-filter" data-filter="chats" onclick="setSearchFilter('chats')">Chats</button>
+        <button class="search-filter" data-filter="messages" onclick="setSearchFilter('messages')">Messages</button>
       </div>
     </div>
     <div id="searchResults" style="flex:1;overflow-y:auto;padding:4px 8px"></div>
     <div id="searchEmpty" class="empty" style="display:none">
       <div class="empty-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
-      <div class="empty-title">Search users</div>
-      <div class="empty-desc">Type a name to find people</div>
+      <div class="empty-title" id="searchEmptyTitle">Search users</div>
+      <div class="empty-desc" id="searchEmptyDesc">Type a name to find people</div>
     </div>
   </div>
 
@@ -349,26 +354,38 @@ function loadActiveUsers(){
 }
 
 // ===== SEARCH TAB =====
-let searchTimer=null;
+let searchTimer=null,searchFilter='users';
+function setSearchFilter(f){searchFilter=f;document.querySelectorAll('.search-filter').forEach(b=>b.classList.toggle('active',b.dataset.filter===f));const q=document.getElementById('searchInput').value;if(q)handleSearch(q)}
 function handleSearch(q){
   clearTimeout(searchTimer);
   searchTimer=setTimeout(()=>{
-    searchUsers(q,users=>{
-      const c=document.getElementById('searchResults');
-      const e=document.getElementById('searchEmpty');
-      c.innerHTML='';
-      if(!users.length||!q){c.style.display='none';e.style.display=!q?'none':'flex';return}
+    const c=document.getElementById('searchResults');
+    const e=document.getElementById('searchEmpty');
+    c.innerHTML='';
+    if(!q){c.style.display='none';e.style.display='flex';document.getElementById('searchEmptyTitle').textContent='Search';document.getElementById('searchEmptyDesc').textContent='Type to search';return}
+    if(searchFilter==='users')searchUsers(q,users=>{
+      if(!users.length){c.style.display='none';e.style.display='flex';document.getElementById('searchEmptyTitle').textContent='No users found';document.getElementById('searchEmptyDesc').textContent='Try a different name';return}
       c.style.display='block';e.style.display='none';
       users.forEach(u=>{
-        const d=document.createElement('div');
-        d.className='user-row';
-        d.innerHTML=`
-          ${u.profileImage?`<img class="avatar" src="${u.profileImage}" alt="">`:`<div class="avatar avatar-placeholder" style="font-size:18px">${u.name[0]}</div>`}
-          <div class="user-row-info"><div class="user-row-name">${escapeHtml(u.name)}</div></div>
-          <button class="btn btn-sm btn-primary" onclick="event.stopPropagation();startChatWith('${u.id}')">Chat</button>
-        `;
-        d.onclick=()=>startChatWith(u.id);
-        c.appendChild(d);
+        const d=document.createElement('div');d.className='user-row';
+        d.innerHTML=`${u.profileImage?`<img class="avatar" src="${u.profileImage}" alt="">`:`<div class="avatar avatar-placeholder" style="font-size:18px">${u.name[0]}</div>`}<div class="user-row-info"><div class="user-row-name">${escapeHtml(u.name)}</div></div><button class="btn btn-sm btn-primary" onclick="event.stopPropagation();startChatWith('${u.id}')">Chat</button>`;
+        d.onclick=()=>startChatWith(u.id);c.appendChild(d);
+      });
+    });else if(searchFilter==='chats')searchChats(q,chats=>{
+      if(!chats.length){c.style.display='none';e.style.display='flex';document.getElementById('searchEmptyTitle').textContent='No chats found';document.getElementById('searchEmptyDesc').textContent='Try a different search term';return}
+      c.style.display='block';e.style.display='none';
+      chats.forEach(ch=>{
+        const d=document.createElement('div');d.className='user-row';
+        d.innerHTML=`${ch.partnerImage?`<img class="avatar" src="${ch.partnerImage}" alt="">`:`<div class="avatar avatar-placeholder" style="font-size:18px">${ch.partnerName[0]}</div>`}<div class="user-row-info"><div class="user-row-name">${escapeHtml(ch.partnerName)}</div><div class="user-row-sub">${escapeHtml(ch.lastMessage)}</div></div>`;
+        d.onclick=()=>goTo('chat.html?id='+ch.id+'&partner='+ch.partnerId);c.appendChild(d);
+      });
+    });else if(searchFilter==='messages')searchInbox(q,msgs=>{
+      if(!msgs.length){c.style.display='none';e.style.display='flex';document.getElementById('searchEmptyTitle').textContent='No messages found';document.getElementById('searchEmptyDesc').textContent='Try a different search term';return}
+      c.style.display='block';e.style.display='none';
+      msgs.forEach(m=>{
+        const d=document.createElement('div');d.className='user-row';
+        d.innerHTML=`<div class="avatar avatar-sm avatar-placeholder" style="font-size:13px">${m.partnerName[0]}</div><div class="user-row-info"><div class="user-row-name">${escapeHtml(m.partnerName)}</div><div class="user-row-sub">${escapeHtml(m.text)}</div></div><div style="font-size:11px;color:var(--text3)">${formatTime(m.timestamp)}</div>`;
+        d.onclick=()=>goTo('chat.html?id='+m.chatId+'&partner='+m.partnerId);c.appendChild(d);
       });
     });
   },300);
