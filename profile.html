@@ -11,87 +11,94 @@
 <title>SEVEN - Profile</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@400;500;600;700;800&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+<script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="css/style.css">
-<link rel="stylesheet" href="css/mobile.css">
-<link rel="stylesheet" href="css/dark.css">
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 </head>
-<body>
+<body class="bg-[#0B1220] text-white d-flex flex-column" style="font-family:'Inter',sans-serif">
 <div class="topbar">
   <button class="topbar-btn" onclick="history.back()"><i class="fa-solid fa-arrow-left"></i></button>
   <div class="topbar-center"><div class="topbar-title">Profile</div></div>
   <button class="topbar-btn" onclick="goTo('settings.html')"><i class="fa-solid fa-gear"></i></button>
 </div>
-<div style="flex:1;overflow-y:auto;padding:16px">
-  <!-- AVATAR -->
-  <div style="text-align:center;margin-bottom:16px">
-    <div style="position:relative;cursor:pointer;display:inline-block" onclick="document.getElementById('pfpUpload').click()">
+<div class="flex-grow-1 overflow-y-auto p-3">
+  <div class="text-center mb-3">
+    <div class="position-relative d-inline-block cursor-pointer" onclick="document.getElementById('pfpUpload').click()">
       <div class="premium-ring-wrap">
         <div class="premium-ring">
-          <img id="pfpImg" src="" class="avatar avatar-xxl" alt="" style="display:none">
+          <img id="pfpImg" src="" class="avatar avatar-xxl d-none" alt="">
           <div id="pfpPl" class="avatar avatar-xxl avatar-placeholder" style="font-size:44px">?</div>
         </div>
         <div class="premium-online-dot"></div>
       </div>
-      <div style="position:absolute;bottom:0;right:0;width:30px;height:30px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid var(--bg);z-index:3"><i class="fa-solid fa-camera"></i></div>
+      <div class="position-absolute bottom-0 end-0 d-flex align-items-center justify-content-center rounded-circle" style="width:30px;height:30px;background:#7C3AED;color:#fff;font-size:14px;border:2px solid var(--bg);z-index:3"><i class="fa-solid fa-camera"></i></div>
     </div>
-    <div id="uploadProg" class="upload-progress upload-progress-avatar" style="display:none"><div class="upload-progress-bar" style="width:0%"></div></div>
+    <div id="uploadProg" class="upload-progress upload-progress-avatar d-none"><div class="upload-progress-bar" style="width:0%"></div></div>
   </div>
 
-  <!-- PROFILE FIELDS DISPLAY -->
-  <div class="profile-card" style="padding:16px;margin-bottom:12px">
+  <div class="card border-0 p-3 mb-3" style="background:var(--glass);backdrop-filter:blur(16px);border-radius:20px;border:1px solid var(--glass-border)">
     <div class="profile-field-row"><div class="profile-field-label"><i class="fa-solid fa-user"></i> Name</div><div class="profile-field-value" id="dName">-</div><button class="profile-field-edit" onclick="openEdit('name')"><i class="fa-solid fa-pen"></i></button></div>
     <div class="profile-field-row"><div class="profile-field-label"><i class="fa-solid fa-at"></i> Username</div><div class="profile-field-value" id="dUsername">-</div><button class="profile-field-edit" onclick="openEdit('username')"><i class="fa-solid fa-pen"></i></button></div>
     <div class="profile-field-row"><div class="profile-field-label"><i class="fa-solid fa-info-circle"></i> Bio</div><div class="profile-field-value" id="dBio">-</div><button class="profile-field-edit" onclick="openEdit('bio')"><i class="fa-solid fa-pen"></i></button></div>
     <div class="profile-field-row"><div class="profile-field-label"><i class="fa-solid fa-cake-candles"></i> Age</div><div class="profile-field-value" id="dAge">-</div><button class="profile-field-edit" onclick="openEdit('age')"><i class="fa-solid fa-pen"></i></button></div>
     <div class="profile-field-row"><div class="profile-field-label"><i class="fa-solid fa-heart"></i> Marital</div><div class="profile-field-value" id="dMarital">-</div><button class="profile-field-edit" onclick="openEdit('marital')"><i class="fa-solid fa-pen"></i></button></div>
-    <div class="profile-field-row"><div class="profile-field-label"><i class="fa-solid fa-venus-mars"></i> Gender</div><div class="profile-field-value" id="dGender">-</div><button class="profile-field-edit" onclick="openEdit('gender')"><i class="fa-solid fa-pen"></i></button></div>
+    <div class="profile-field-row border-bottom-0"><div class="profile-field-label"><i class="fa-solid fa-venus-mars"></i> Gender</div><div class="profile-field-value" id="dGender">-</div><button class="profile-field-edit" onclick="openEdit('gender')"><i class="fa-solid fa-pen"></i></button></div>
   </div>
 
-  <!-- STATS -->
-  <div style="display:flex;gap:28px;padding:14px 0;justify-content:center;border-top:1px solid var(--glass-border);border-bottom:1px solid var(--glass-border);margin:0 4px 16px">
-    <div style="text-align:center"><div style="font-size:19px;font-weight:800;color:var(--primary)" id="pfpChats">0</div><div style="font-size:12px;color:var(--text3)">Chats</div></div>
-    <div style="text-align:center"><div style="font-size:19px;font-weight:800;color:var(--primary)" id="pfpDays">0</div><div style="font-size:12px;color:var(--text3)">Days</div></div>
+  <div class="d-flex gap-4 justify-content-center py-3" style="border-top:1px solid var(--glass-border);border-bottom:1px solid var(--glass-border);margin:0 4px 12px">
+    <div class="text-center"><div class="fw-bold" style="font-size:19px;color:#7C3AED" id="pfpChats">0</div><div class="text-secondary-emphasis small">Chats</div></div>
+    <div class="text-center"><div class="fw-bold" style="font-size:19px;color:#7C3AED" id="pfpDays">0</div><div class="text-secondary-emphasis small">Days</div></div>
+  </div>
+
+  <div class="d-flex flex-column gap-2 mt-3">
+    <button class="btn w-100 text-white fw-semibold border-0" style="background:#7C3AED;border-radius:18px;padding:13px" onclick="changePwd()"><i class="fa-solid fa-key"></i> Change Password</button>
+    <button class="btn w-100 border text-secondary-emphasis fw-semibold" style="border-radius:18px;padding:13px;border-color:rgba(255,255,255,.1)!important" onclick="confirmLogout()"><i class="fa-solid fa-right-from-bracket" style="color:#EF4444"></i> <span style="color:#EF4444">Logout</span></button>
   </div>
 </div>
 
-<!-- EDIT MODAL -->
 <div class="modal-overlay" id="editModal">
   <div class="modal">
     <div class="modal-title" id="editTitle">Edit</div>
     <div id="editBody"></div>
-    <button class="btn btn-primary btn-full" id="editSaveBtn" onclick="saveEdit()">Save</button>
-    <button class="btn btn-ghost btn-full" onclick="closeModal('editModal')" style="margin-top:8px">Cancel</button>
+    <button class="btn w-100 text-white fw-semibold border-0" style="background:#7C3AED;border-radius:18px;padding:13px" id="editSaveBtn" onclick="saveEdit()">Save</button>
+    <button class="btn w-100 mt-2 border-secondary text-secondary-emphasis fw-semibold" style="border-radius:18px;padding:13px" onclick="closeModal('editModal')">Cancel</button>
   </div>
 </div>
 
-<input type="file" id="pfpUpload" accept="image/*" style="display:none" onchange="changePfp(event)">
+<div class="modal-overlay" id="pwdModal">
+  <div class="modal">
+    <div class="modal-title">Change Password</div>
+    <div class="mb-3"><label class="form-label text-uppercase text-secondary-emphasis small fw-semibold">Current</label><input type="password" class="form-control bg-[#172033] border-secondary text-white" id="curPwd" placeholder="Current password" style="border-radius:16px;padding:14px 16px"></div>
+    <div class="mb-3"><label class="form-label text-uppercase text-secondary-emphasis small fw-semibold">New</label><input type="password" class="form-control bg-[#172033] border-secondary text-white" id="newPwd" placeholder="New password" style="border-radius:16px;padding:14px 16px"></div>
+    <div class="mb-3"><label class="form-label text-uppercase text-secondary-emphasis small fw-semibold">Confirm</label><input type="password" class="form-control bg-[#172033] border-secondary text-white" id="conPwd" placeholder="Confirm password" style="border-radius:16px;padding:14px 16px"></div>
+    <button class="btn w-100 text-white fw-semibold border-0" style="background:#7C3AED;border-radius:18px;padding:13px" onclick="savePwd()">Save</button>
+    <button class="btn w-100 mt-2 border-secondary text-secondary-emphasis fw-semibold" style="border-radius:18px;padding:13px" onclick="closeModal('pwdModal')">Cancel</button>
+  </div>
+</div>
+
+<input type="file" id="pfpUpload" accept="image/*" class="d-none" onchange="changePfp(event)">
 <script src="js/firebase.js"></script>
 <script src="js/app.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/profile.js"></script>
 <script>
 let _editField=null,_editVal=null;
-
 function initProfile(){
   if(!isLoggedIn()){goTo('login.html');return}
   loadProfileData();
 }
 (function(){if(document.readyState!=='loading')initProfile();else document.addEventListener('DOMContentLoaded',initProfile)})();
-
 function loadProfileData(){
   const uid=localStorage.getItem('uid');
   REFS.users.child(uid).once('value',snap=>{
     const u=snap.val();if(!u)return;
     const img=document.getElementById('pfpImg'),pl=document.getElementById('pfpPl');
-    if(u.profileImage){img.src=u.profileImage;img.style.display='block';pl.style.display='none'}else{img.style.display='none';pl.style.display='flex';pl.textContent=u.name[0]}
+    if(u.profileImage){img.src=u.profileImage;img.classList.remove('d-none');pl.classList.add('d-none')}else{img.classList.add('d-none');pl.classList.remove('d-none');pl.textContent=u.name[0]}
     document.getElementById('dName').textContent=u.name||'-';
     document.getElementById('dUsername').textContent='@'+(u.username||(u.userId||'').slice(-6));
     document.getElementById('dBio').textContent=u.bio||'No bio yet';
@@ -102,85 +109,58 @@ function loadProfileData(){
     REFS.chats.once('value',s=>{let c=0;s.forEach(ch=>{if(ch.val().participants&&ch.val().participants[uid])c++});document.getElementById('pfpChats').textContent=c-1||0});
   });
 }
-
 function openEdit(field){
   _editField=field;
   const labels={name:'Name',username:'Username',bio:'Bio',age:'Age',marital:'Marital Status',gender:'Gender'};
   document.getElementById('editTitle').textContent='Edit '+labels[field];
-  const body=document.getElementById('editBody');
-  body.innerHTML='';
+  const body=document.getElementById('editBody');body.innerHTML='';
   if(field==='marital'){
-    body.innerHTML=`
-      <div style="display:flex;gap:10px;margin-bottom:14px">
-        <button class="btn ${_editVal||'unmarried'}" data-v="unmarried" onclick="selectMarital('unmarried')" style="flex:1;border-radius:var(--radius-btn);padding:12px"><i class="fa-solid fa-heart"></i> Unmarried</button>
-        <button class="btn ${_editVal||'married'}" data-v="married" onclick="selectMarital('married')" style="flex:1;border-radius:var(--radius-btn);padding:12px"><i class="fa-solid fa-heart"></i> Married</button>
-      </div>`;
-    _editVal=document.getElementById('dMarital').textContent==='Married'?'married':'unmarried';
-    highlightMarital();
+    body.innerHTML=`<div class="d-flex gap-2 mb-3"><button class="btn flex-grow-1" data-v="unmarried" onclick="selectMarital('unmarried')" style="border-radius:18px;padding:12px"><i class="fa-solid fa-heart"></i> Unmarried</button><button class="btn flex-grow-1" data-v="married" onclick="selectMarital('married')" style="border-radius:18px;padding:12px"><i class="fa-solid fa-heart"></i> Married</button></div>`;
+    _editVal=document.getElementById('dMarital').textContent==='Married'?'married':'unmarried';highlightMarital();
   }else if(field==='gender'){
-    body.innerHTML=`
-      <div style="display:flex;gap:10px;margin-bottom:14px">
-        <button class="btn" data-v="male" onclick="selectGender('male')" style="flex:1;border-radius:var(--radius-btn);padding:12px"><i class="fa-solid fa-mars"></i> Male</button>
-        <button class="btn" data-v="female" onclick="selectGender('female')" style="flex:1;border-radius:var(--radius-btn);padding:12px"><i class="fa-solid fa-venus"></i> Female</button>
-      </div>`;
-    _editVal=document.getElementById('dGender').textContent==='Female'?'female':'male';
-    highlightGender();
+    body.innerHTML=`<div class="d-flex gap-2 mb-3"><button class="btn flex-grow-1" data-v="male" onclick="selectGender('male')" style="border-radius:18px;padding:12px"><i class="fa-solid fa-mars"></i> Male</button><button class="btn flex-grow-1" data-v="female" onclick="selectGender('female')" style="border-radius:18px;padding:12px"><i class="fa-solid fa-venus"></i> Female</button></div>`;
+    _editVal=document.getElementById('dGender').textContent==='Female'?'female':'male';highlightGender();
   }else{
     const ph={name:'Your name',username:'Username',bio:'Write your bio...',age:'Your age'};
-    const cur={
-      name:document.getElementById('dName').textContent,
-      username:document.getElementById('dUsername').textContent.replace('@',''),
-      bio:document.getElementById('dBio').textContent==='No bio yet'?'':document.getElementById('dBio').textContent,
-      age:document.getElementById('dAge').textContent==='-'?'':document.getElementById('dAge').textContent
-    };
-    const inputType=field==='age'?'number':'text';
-    const maxLen=field==='bio'?'100':field==='age'?'3':'50';
-    body.innerHTML=`<div class="input-group"><input type="${inputType}" class="input-field" id="editInput" placeholder="${ph[field]}" maxlength="${maxLen}" value="${escapeHtml(cur[field])}"></div>`;
-    _editVal=cur[field];
-    setTimeout(()=>{const el=document.getElementById('editInput');if(el){el.focus();el.select()}},200);
+    const cur={name:document.getElementById('dName').textContent,username:document.getElementById('dUsername').textContent.replace('@',''),bio:document.getElementById('dBio').textContent==='No bio yet'?'':document.getElementById('dBio').textContent,age:document.getElementById('dAge').textContent==='-'?'':document.getElementById('dAge').textContent};
+    body.innerHTML=`<div class="mb-3"><input type="${field==='age'?'number':'text'}" class="form-control bg-[#172033] border-secondary text-white" id="editInput" placeholder="${ph[field]}" maxlength="${field==='bio'?'100':field==='age'?'3':'50'}" value="${escapeHtml(cur[field])}" style="border-radius:16px;padding:14px 16px"></div>`;
+    _editVal=cur[field];setTimeout(()=>{const el=document.getElementById('editInput');if(el){el.focus();el.select()}},200);
   }
-  document.getElementById('editSaveBtn').textContent='Save';
-  document.getElementById('editModal').classList.add('active');
+  document.getElementById('editSaveBtn').textContent='Save';document.getElementById('editModal').classList.add('active');
 }
-
 function selectMarital(v){_editVal=v;highlightMarital()}
-function highlightMarital(){document.querySelectorAll('#editBody button[data-v]').forEach(b=>{b.className='btn btn-ghost';if(b.dataset.v===_editVal){b.className='btn btn-primary'}})}
+function highlightMarital(){document.querySelectorAll('#editBody button[data-v]').forEach(b=>{b.className='btn flex-grow-1 border-secondary text-secondary-emphasis';if(b.dataset.v===_editVal)b.className='btn flex-grow-1 text-white border-0'})}
 function selectGender(v){_editVal=v;highlightGender()}
-function highlightGender(){document.querySelectorAll('#editBody button[data-v]').forEach(b=>{b.className='btn btn-ghost';if(b.dataset.v===_editVal){b.className='btn btn-primary'}})}
-
+function highlightGender(){document.querySelectorAll('#editBody button[data-v]').forEach(b=>{b.className='btn flex-grow-1 border-secondary text-secondary-emphasis';if(b.dataset.v===_editVal)b.className='btn flex-grow-1 text-white border-0'})}
 async function saveEdit(){
-  const btn=document.getElementById('editSaveBtn');
-  btn.disabled=true;btn.textContent='Saving...';
+  const btn=document.getElementById('editSaveBtn');btn.disabled=true;btn.textContent='Saving...';
   let val=_editVal;
   if(_editField!=='marital'&&_editField!=='gender'){
     val=document.getElementById('editInput').value.trim();
     if(!val){toast('Please enter a value','error');btn.disabled=false;btn.textContent='Save';return}
     if(_editField==='age'){const n=parseInt(val);if(isNaN(n)||n<1||n>150){toast('Enter a valid age (1-150)','error');btn.disabled=false;btn.textContent='Save';return}}
   }
-  const data={};
-  if(_editField==='name')data.name=val;
-  else if(_editField==='username')data.username=val;
-  else if(_editField==='bio')data.bio=val;
-  else if(_editField==='age')data.age=val;
-  else if(_editField==='marital')data.maritalStatus=val;
-  else if(_editField==='gender')data.gender=val;
-  await updateProfile(data);
-  closeModal('editModal');
-  loadProfileData();
-  btn.disabled=false;btn.textContent='Save';
+  const data={};const map={name:'name',username:'username',bio:'bio',age:'age',marital:'maritalStatus',gender:'gender'};
+  data[map[_editField]]=val;await updateProfile(data);closeModal('editModal');loadProfileData();btn.disabled=false;btn.textContent='Save';
 }
-
 function closeModal(id){document.getElementById(id).classList.remove('active')}
-
+function changePwd(){document.getElementById('pwdModal').classList.add('active')}
+async function savePwd(){
+  const c=document.getElementById('curPwd').value,n=document.getElementById('newPwd').value,co=document.getElementById('conPwd').value;
+  if(!c||!n||!co){toast('Fill all fields','error');return}
+  if(n.length<6){toast('6+ characters','error');return}
+  if(n!==co){toast('Passwords do not match','error');return}
+  const uid=localStorage.getItem('uid');const snap=await REFS.users.child(uid).once('value');const u=snap.val();
+  if(!u){toast('User not found','error');return}
+  if(await sha256(c)!==u.passwordHash){toast('Wrong password','error');return}
+  await REFS.users.child(uid).update({passwordHash:await sha256(n)});toast('Password changed','success');
+  closeModal('pwdModal');document.getElementById('curPwd').value='';document.getElementById('newPwd').value='';document.getElementById('conPwd').value='';
+}
+function confirmLogout(){if(confirm('Logout from SEVEN?')){const u=localStorage.getItem('uid');if(u){REFS.users.child(u).update({onlineStatus:false,lastSeen:Date.now(),fcmToken:''});if(typeof firebase!=='undefined'&&firebase.messaging){try{firebase.messaging().deleteToken().catch(()=>{})}catch(e){}}};clearSession();goTo('login.html')}}
 function changePfp(e){
   const f=e.target.files[0];if(!f||f.size>5*1024*1024){toast('Image too large','error');return}
-  const prog=document.getElementById('uploadProg');prog.style.display='block';const bar=prog.querySelector('.upload-progress-bar');bar.style.width='0%';
-  updateProfileImage(f,(loaded,total)=>{
-    bar.style.width=Math.min(100,Math.round(loaded/total*100))+'%';
-  }).then(url=>{
-    if(url){bar.style.width='100%';setTimeout(()=>{prog.style.display='none'},600);document.getElementById('pfpImg').src=url;document.getElementById('pfpImg').style.display='block';document.getElementById('pfpPl').style.display='none'}
-    else{prog.style.display='none';toast('Upload failed','error')}
-  });
+  const prog=document.getElementById('uploadProg');prog.classList.remove('d-none');const bar=prog.querySelector('.upload-progress-bar');bar.style.width='0%';
+  updateProfileImage(f,(l,t)=>{bar.style.width=Math.min(100,Math.round(l/t*100))+'%'}).then(url=>{if(url){bar.style.width='100%';setTimeout(()=>{prog.classList.add('d-none')},600);document.getElementById('pfpImg').src=url;document.getElementById('pfpImg').classList.remove('d-none');document.getElementById('pfpPl').classList.add('d-none')}else{prog.classList.add('d-none');toast('Upload failed','error')}});
 }
 </script>
 </body>

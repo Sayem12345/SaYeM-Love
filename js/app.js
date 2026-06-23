@@ -47,7 +47,7 @@ function isLoggedIn(){return!!getSession()}
 
 // ===== SPA ROUTER =====
 const _scrollStates={};
-const _spaPages=['home.html','chat.html','profile.html','settings.html'];
+const _spaPages=['home.html','chat.html','search.html','active.html','profile.html','settings.html'];
 function goTo(page){
   if(page.includes('login')||page.includes('registration')){window.location.href=page;return}
   const pn=page.includes('?')?page.split('?')[0]:page.endsWith('.html')?page:page+'.html';
@@ -78,18 +78,20 @@ function _execScripts(c){
 }
 function _saveScrollState(){
   const p=window.location.pathname.split('/').pop()+window.location.search;
-  const el=document.querySelector('.msg-container')||document.querySelector('.chat-list')||document.querySelector('.tab-content.active')||document.querySelector('#profileTabContent')||document.querySelector('.settings-tab');
+  const el=document.querySelector('.msg-container')||document.querySelector('.chat-list')||document.querySelector('.tab-content.active')||document.querySelector('#profileTabContent')||document.querySelector('.settings-tab')||document.querySelector('#searchResults')||document.querySelector('#activeUsers');
   if(el)_scrollStates[p]=el.scrollTop;
 }
 function _restoreScrollState(){
   setTimeout(()=>{
     const p=window.location.pathname.split('/').pop()+window.location.search;
-    const el=document.querySelector('.msg-container')||document.querySelector('.chat-list')||document.querySelector('.tab-content.active')||document.querySelector('#profileTabContent')||document.querySelector('.settings-tab');
+    const el=document.querySelector('.msg-container')||document.querySelector('.chat-list')||document.querySelector('.tab-content.active')||document.querySelector('#profileTabContent')||document.querySelector('.settings-tab')||document.querySelector('#searchResults')||document.querySelector('#activeUsers');
     if(el&&_scrollStates[p]!==undefined)el.scrollTop=_scrollStates[p];
   },50);
 }
 function _initCurPage(pn){
   if(pn==='chat.html'&&typeof initChat==='function')initChat();
+  else if(pn==='search.html'&&typeof initSearch==='function')initSearch();
+  else if(pn==='active.html'&&typeof initActive==='function')initActive();
   else if(pn==='profile.html'&&typeof initProfile==='function')initProfile();
   else if(pn==='settings.html'&&typeof initSettings==='function')initSettings();
 }

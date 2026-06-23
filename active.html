@@ -8,52 +8,52 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%237C3AED'/%3E%3Cstop offset='100%25' stop-color='%238B5CF6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='96' cy='96' r='96' fill='url(%23g)'/%3E%3Cpath d='M38,75 Q96,49 154,75 Q157,82 154,90 Q96,128 38,90 Q35,82 38,75Z' fill='%230B1220'/%3E%3Cpath d='M49,81 Q96,60 143,81 L141,88 Q96,116 51,88Z' fill='%231E293B'/%3E%3Cellipse cx='71' cy='88' rx='6' ry='8' fill='%2306B6D4'/%3E%3Cellipse cx='121' cy='88' rx='6' ry='8' fill='%2306B6D4'/%3E%3Cellipse cx='71' cy='88' rx='2' ry='3' fill='%23fff'/%3E%3Cellipse cx='121' cy='88' rx='2' ry='3' fill='%23fff'/%3E%3Cpath d='M79,103 Q96,111 113,103' stroke='%2306B6D4' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3Ctext x='96' y='145' font-size='16' font-weight='900' text-anchor='middle' fill='%23fff' font-family='Arial,Helvetica,sans-serif' letter-spacing='2'%3ESEVEN%3C/text%3E%3C/svg%3E" sizes="192x192">
+<title>SEVEN - Active</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@400;500;600;700;800&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="css/style.css">
-<link rel="stylesheet" href="css/mobile.css">
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js"></script>
 </head>
-<body>
-<div class="splash" id="splash">
-  <div class="splash-brand">SEVEN</div>
-  <div class="splash-loader"></div>
+<body class="bg-[#0B1220] text-white d-flex flex-column" style="font-family:'Inter',sans-serif">
+<div class="topbar">
+  <button class="topbar-btn" onclick="history.back()"><i class="fa-solid fa-arrow-left"></i></button>
+  <div class="topbar-center"><div class="topbar-title">Active Now</div></div>
+  <div style="width:38px"></div>
 </div>
-
-<!-- APP SHELL -->
-<div id="app"></div>
-
+<div id="activeUsers" class="flex-grow-1 overflow-y-auto px-2"></div>
+<div id="activeEmpty" class="empty">
+  <div class="empty-icon"><i class="fa-solid fa-circle" style="color:#10B981"></i></div>
+  <div class="empty-title">No one online</div>
+  <div class="empty-desc">Active users will appear here</div>
+</div>
 <script src="js/firebase.js"></script>
 <script src="js/app.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/chat.js"></script>
-<script src="js/search.js"></script>
-<script src="js/notifications.js"></script>
-<script src="js/profile.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded',()=>{
-  const splash=document.getElementById('splash');
-  if(splash){
-    splash.classList.add('hidden');
-    setTimeout(()=>{if(splash&&splash.parentNode)splash.remove()},500);
-  }
-  if(window._autoLoginDone)return;
-  const s=getSession();
-  if(s&&s.uid){
-    let initPage='home.html';
-    const p=window.location.pathname.split('/').pop();
-    if(p&&p!=='index.html'&&p!==''&&_spaPages.includes(p))initPage=p+window.location.search;
-    goTo(initPage);
-  }else if(localStorage.getItem('uid')){goTo('login.html')}
-  else{goTo('registration.html')}
-});
+let unsubActive=null;
+function initActive(){
+  if(!isLoggedIn()){goTo('login.html');return}
+  if(unsubActive)unsubActive();
+  listenOnlineUsers(users=>{
+    const c=document.getElementById('activeUsers');const e=document.getElementById('activeEmpty');
+    c.innerHTML='';
+    if(!users.length){c.style.display='none';e.classList.remove('d-none');return}
+    c.style.display='block';e.classList.add('d-none');
+    users.forEach(u=>{
+      const d=document.createElement('div');d.className='user-row';
+      d.innerHTML=`${u.profileImage?`<img class="avatar" src="${u.profileImage}" alt="">`:`<div class="avatar avatar-placeholder" style="font-size:18px">${u.name[0]}</div>`}<div class="user-row-info"><div class="user-row-name">${escapeHtml(u.name)}</div><div class="user-row-sub online">Online</div></div>`;
+      d.onclick=async()=>{const id=await getOrCreateChat(u.id);if(id)goTo('chat.html?id='+id+'&partner='+u.id)};c.appendChild(d);
+    });
+  });
+}
+(function(){if(document.readyState!=='loading')initActive();else document.addEventListener('DOMContentLoaded',initActive)})();
 </script>
 </body>
 </html>

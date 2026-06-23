@@ -8,232 +8,86 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%237C3AED'/%3E%3Cstop offset='100%25' stop-color='%238B5CF6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='96' cy='96' r='96' fill='url(%23g)'/%3E%3Cpath d='M38,75 Q96,49 154,75 Q157,82 154,90 Q96,128 38,90 Q35,82 38,75Z' fill='%230B1220'/%3E%3Cpath d='M49,81 Q96,60 143,81 L141,88 Q96,116 51,88Z' fill='%231E293B'/%3E%3Cellipse cx='71' cy='88' rx='6' ry='8' fill='%2306B6D4'/%3E%3Cellipse cx='121' cy='88' rx='6' ry='8' fill='%2306B6D4'/%3E%3Cellipse cx='71' cy='88' rx='2' ry='3' fill='%23fff'/%3E%3Cellipse cx='121' cy='88' rx='2' ry='3' fill='%23fff'/%3E%3Cpath d='M79,103 Q96,111 113,103' stroke='%2306B6D4' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3Ctext x='96' y='145' font-size='16' font-weight='900' text-anchor='middle' fill='%23fff' font-family='Arial,Helvetica,sans-serif' letter-spacing='2'%3ESEVEN%3C/text%3E%3C/svg%3E" sizes="192x192">
-<title>SEVEN</title>
+<title>SEVEN - Chats</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@400;500;600;700;800&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+<script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="css/style.css">
-<link rel="stylesheet" href="css/mobile.css">
-<link rel="stylesheet" href="css/dark.css">
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js"></script>
 </head>
 <body>
-<div class="page active" id="app">
-  <!-- TOP BAR -->
+<div class="d-flex flex-column h-100 w-100">
   <div class="topbar">
     <div class="topbar-brand">SEVEN</div>
-    <div style="flex:1"></div>
-    <button class="topbar-btn" onclick="switchTab('search')"><i class="fa-solid fa-magnifying-glass"></i></button>
+    <div class="flex-grow-1"></div>
+    <button class="topbar-btn" onclick="goTo('search.html')"><i class="fa-solid fa-magnifying-glass"></i></button>
     <button class="topbar-btn" onclick="goTo('profile.html')"><i class="fa-solid fa-user"></i></button>
   </div>
 
-  <!-- ===== TAB: CHATS ===== -->
-  <div class="tab-content active" id="tabChats">
-    <div id="archiveToggle" class="archive-toggle" onclick="toggleArchiveSection()" style="display:none"><i class="fa-solid fa-box-archive"></i> <span>Archived chats</span> <span id="archiveCount" style="color:var(--text3);font-size:13px;margin-left:4px"></span> <span style="margin-left:auto;font-size:11px;color:var(--text3)"><i class="fa-solid fa-chevron-down"></i></span></div>
-    <div id="archivedSection" style="display:none"><div class="chat-list" id="archivedList"></div></div>
-    <div id="chatsList" class="chat-list"></div>
-    <div id="chatsEmpty" class="empty" style="display:none">
-      <div class="empty-icon"><i class="fa-regular fa-comment-dots"></i></div>
-      <div class="empty-title">No chats yet</div>
-      <div class="empty-desc">Start a conversation with someone</div>
-    </div>
+  <div id="archiveToggle" class="archive-toggle d-none" onclick="toggleArchiveSection()"><i class="fa-solid fa-box-archive"></i> <span>Archived chats</span> <span id="archiveCount" class="text-secondary-emphasis" style="font-size:13px;margin-left:4px"></span> <span class="ms-auto" style="font-size:11px"><i class="fa-solid fa-chevron-down"></i></span></div>
+  <div id="archivedSection" class="d-none"><div class="chat-list" id="archivedList"></div></div>
+  <div id="chatsList" class="chat-list"></div>
+  <div id="chatsEmpty" class="empty d-none">
+    <div class="empty-icon"><i class="fa-regular fa-comment-dots"></i></div>
+    <div class="empty-title">No chats yet</div>
+    <div class="empty-desc">Start a conversation with someone</div>
   </div>
 
-  <!-- ===== TAB: ACTIVE ===== -->
-  <div class="tab-content" id="tabActive">
-    <div id="activeUsers" style="padding:4px 8px;overflow-y:auto;flex:1"></div>
-    <div id="activeEmpty" class="empty" style="display:none">
-      <div class="empty-icon"><i class="fa-solid fa-circle" style="color:#10B981"></i></div>
-      <div class="empty-title">No one online</div>
-      <div class="empty-desc">Active users will appear here</div>
-    </div>
-  </div>
-
-  <!-- ===== TAB: SEARCH ===== -->
-  <div class="tab-content" id="tabSearch">
-    <div class="search-bar">
-      <div class="search-field">
-        <i class="fa-solid fa-magnifying-glass" style="font-size:14px;color:var(--text3)"></i>
-        <input type="text" id="searchInput" placeholder="Search users, chats, messages..." oninput="handleSearch(this.value)">
-      </div>
-      <div style="display:flex;gap:4px;margin-top:8px" id="searchFilters">
-        <button class="search-filter active" data-filter="users" onclick="setSearchFilter('users')">Users</button>
-        <button class="search-filter" data-filter="chats" onclick="setSearchFilter('chats')">Chats</button>
-        <button class="search-filter" data-filter="messages" onclick="setSearchFilter('messages')">Messages</button>
-      </div>
-    </div>
-    <div id="searchResults" style="flex:1;overflow-y:auto;padding:4px 8px"></div>
-    <div id="searchEmpty" class="empty" style="display:none">
-      <div class="empty-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
-      <div class="empty-title" id="searchEmptyTitle">Search users</div>
-      <div class="empty-desc" id="searchEmptyDesc">Type a name to find people</div>
-    </div>
-  </div>
-
-  <!-- ===== TAB: PROFILE ===== -->
-  <div class="tab-content" id="tabProfile">
-    <div class="profile-tab" id="profileTabContent" style="overflow-y:auto;flex:1">
-      <!-- AVATAR -->
-      <div style="text-align:center;margin-bottom:12px;padding-top:8px">
-        <div style="position:relative;cursor:pointer;display:inline-block" onclick="document.getElementById('profileUpload').click()">
-          <div class="premium-ring-wrap">
-            <div class="premium-ring">
-              <img id="hPfpImg" src="" class="avatar avatar-xxl" alt="" style="display:none">
-              <div id="hPfpPl" class="avatar avatar-xxl avatar-placeholder" style="font-size:44px">?</div>
-            </div>
-            <div class="premium-online-dot"></div>
-          </div>
-          <div style="position:absolute;bottom:0;right:0;width:30px;height:30px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid var(--bg);z-index:3"><i class="fa-solid fa-camera"></i></div>
-        </div>
-        <div id="hUploadProg" class="upload-progress upload-progress-avatar" style="display:none"><div class="upload-progress-bar" style="width:0%"></div></div>
-      </div>
-
-      <!-- FIELDS -->
-      <div class="profile-card" style="margin:0 4px 12px">
-        <div class="profile-field-row"><div class="profile-field-label"><i class="fa-solid fa-user"></i> Name</div><div class="profile-field-value" id="hName">-</div><button class="profile-field-edit" onclick="openHomeEdit('name')"><i class="fa-solid fa-pen"></i></button></div>
-        <div class="profile-field-row"><div class="profile-field-label"><i class="fa-solid fa-at"></i> Username</div><div class="profile-field-value" id="hUsername">-</div><button class="profile-field-edit" onclick="openHomeEdit('username')"><i class="fa-solid fa-pen"></i></button></div>
-        <div class="profile-field-row"><div class="profile-field-label"><i class="fa-solid fa-info-circle"></i> Bio</div><div class="profile-field-value" id="hBio">-</div><button class="profile-field-edit" onclick="openHomeEdit('bio')"><i class="fa-solid fa-pen"></i></button></div>
-        <div class="profile-field-row"><div class="profile-field-label"><i class="fa-solid fa-cake-candles"></i> Age</div><div class="profile-field-value" id="hAge">-</div><button class="profile-field-edit" onclick="openHomeEdit('age')"><i class="fa-solid fa-pen"></i></button></div>
-        <div class="profile-field-row"><div class="profile-field-label"><i class="fa-solid fa-heart"></i> Marital</div><div class="profile-field-value" id="hMarital">-</div><button class="profile-field-edit" onclick="openHomeEdit('marital')"><i class="fa-solid fa-pen"></i></button></div>
-        <div class="profile-field-row"><div class="profile-field-label"><i class="fa-solid fa-venus-mars"></i> Gender</div><div class="profile-field-value" id="hGender">-</div><button class="profile-field-edit" onclick="openHomeEdit('gender')"><i class="fa-solid fa-pen"></i></button></div>
-      </div>
-
-      <!-- STATS -->
-      <div style="display:flex;gap:28px;padding:14px 0;justify-content:center;border-top:1px solid var(--glass-border);border-bottom:1px solid var(--glass-border);margin:0 8px 12px">
-        <div style="text-align:center"><div style="font-size:19px;font-weight:800;color:var(--primary)" id="hChats">0</div><div style="font-size:12px;color:var(--text3)">Chats</div></div>
-        <div style="text-align:center"><div style="font-size:19px;font-weight:800;color:var(--primary)" id="hDays">0</div><div style="font-size:12px;color:var(--text3)">Days</div></div>
-      </div>
-      <div style="text-align:center;padding:4px 0 16px;font-size:12px;color:var(--text3)">Tap <i class="fa-solid fa-pen" style="color:var(--primary)"></i> to edit any field</div>
-    </div>
-  </div>
-
-  <!-- ===== TAB: SETTINGS ===== -->
-  <div class="tab-content" id="tabSettings">
-    <div class="settings-tab">
-      <div class="settings-group">
-        <div class="settings-group-title">Preferences</div>
-        <div class="settings-row" onclick="toggleTheme()">
-          <div class="settings-row-left"><div class="settings-row-icon cyan"><i class="fa-solid fa-moon"></i></div><div><div class="settings-row-label">Dark Mode</div><div class="settings-row-desc">Toggle dark/light theme</div></div></div>
-          <div class="toggle active" id="themeToggle"><div class="toggle-knob"></div></div>
-        </div>
-        <div class="settings-row" onclick="toggleNotif()">
-          <div class="settings-row-left"><div class="settings-row-icon blue"><i class="fa-solid fa-bell"></i></div><div><div class="settings-row-label">Notifications</div><div class="settings-row-desc">Receive push alerts</div></div></div>
-          <div class="toggle active" id="notifToggle"><div class="toggle-knob"></div></div>
-        </div>
-        <div class="settings-row" onclick="toggleSound()">
-          <div class="settings-row-left"><div class="settings-row-icon green"><i class="fa-solid fa-volume-high"></i></div><div><div class="settings-row-label">Sound</div><div class="settings-row-desc">Message notification sounds</div></div></div>
-          <div class="toggle active" id="soundToggle"><div class="toggle-knob"></div></div>
-        </div>
-        <div class="settings-row" onclick="toggleReadReceipts()">
-          <div class="settings-row-left"><div class="settings-row-icon blue"><i class="fa-solid fa-eye"></i></div><div><div class="settings-row-label">Read Receipts</div><div class="settings-row-desc">Let others see when you read</div></div></div>
-          <div class="toggle active" id="rrToggle"><div class="toggle-knob"></div></div>
-        </div>
-        <div class="settings-row" onclick="toggleVibrate()">
-          <div class="settings-row-left"><div class="settings-row-icon cyan"><i class="fa-solid fa-mobile-screen-button"></i></div><div><div class="settings-row-label">Vibrate</div><div class="settings-row-desc">Haptic feedback on messages</div></div></div>
-          <div class="toggle active" id="vibToggle"><div class="toggle-knob"></div></div>
-        </div>
-        <div class="settings-row" onclick="toggleAnim()">
-          <div class="settings-row-left"><div class="settings-row-icon green"><i class="fa-solid fa-sparkles"></i></div><div><div class="settings-row-label">Animations</div><div class="settings-row-desc">UI animations and transitions</div></div></div>
-          <div class="toggle active" id="animToggle"><div class="toggle-knob"></div></div>
-        </div>
-      </div>
-      <div class="settings-group">
-        <div class="settings-group-title">Storage</div>
-        <div class="settings-row" onclick="showGitToken()">
-          <div class="settings-row-left"><div class="settings-row-icon cyan"><i class="fa-brands fa-github"></i></div><div><div class="settings-row-label">GitHub Token</div><div class="settings-row-desc">Set for image upload access</div></div></div>
-          <span style="color:var(--text3)" id="gtStatus"><i class="fa-regular fa-circle"></i></span>
-        </div>
-      </div>
-      <div class="settings-group">
-        <div class="settings-group-title">Account</div>
-        <div class="settings-row" onclick="goTo('profile.html')">
-          <div class="settings-row-left"><div class="settings-row-icon blue"><i class="fa-solid fa-user"></i></div><div><div class="settings-row-label">Edit Profile</div><div class="settings-row-desc">Change name, photo, bio</div></div></div>
-          <span style="color:var(--text3)"><i class="fa-solid fa-chevron-right"></i></span>
-        </div>
-        <div class="settings-row" onclick="changePwd()">
-          <div class="settings-row-left"><div class="settings-row-icon cyan"><i class="fa-solid fa-key"></i></div><div><div class="settings-row-label">Change Password</div><div class="settings-row-desc">Update your password</div></div></div>
-          <span style="color:var(--text3)"><i class="fa-solid fa-chevron-right"></i></span>
-        </div>
-        <div class="settings-row" onclick="clearCache()">
-          <div class="settings-row-left"><div class="settings-row-icon green"><i class="fa-solid fa-broom"></i></div><div><div class="settings-row-label">Clear Cache</div><div class="settings-row-desc">Free up storage space</div></div></div>
-        </div>
-      </div>
-      <div class="settings-group">
-        <div class="settings-row" onclick="logout()" style="margin-top:8px">
-          <div class="settings-row-left"><div class="settings-row-icon red"><i class="fa-solid fa-right-from-bracket"></i></div><div><div class="settings-row-label" style="color:var(--danger)">Logout</div><div class="settings-row-desc">Sign out of SEVEN</div></div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===== BOTTOM TABS ===== -->
+  <!-- BOTTOM NAV -->
   <div class="bottom-tabs">
-    <button class="bottom-tab active" data-tab="tabChats" onclick="switchTab('tabChats')"><span class="bottom-tab-icon"><i class="fa-regular fa-comment-dots"></i></span><span>Chats</span></button>
-    <button class="bottom-tab" data-tab="tabActive" onclick="switchTab('tabActive')"><span class="bottom-tab-icon"><i class="fa-solid fa-circle" style="color:#10B981;font-size:14px"></i></span><span>Active</span></button>
-    <button class="bottom-tab" data-tab="tabSearch" onclick="switchTab('tabSearch')"><span class="bottom-tab-icon"><i class="fa-solid fa-magnifying-glass"></i></span><span>Search</span></button>
-    <button class="bottom-tab" data-tab="tabProfile" onclick="switchTab('tabProfile')"><span class="bottom-tab-icon"><i class="fa-solid fa-user"></i></span><span>Profile</span></button>
-    <button class="bottom-tab" data-tab="tabSettings" onclick="switchTab('tabSettings')"><span class="bottom-tab-icon"><i class="fa-solid fa-gear"></i></span><span>Settings</span></button>
+    <button class="bottom-tab active" onclick="goTo('home.html')"><span class="bottom-tab-icon"><i class="fa-regular fa-comment-dots"></i></span><span>Chats</span></button>
+    <button class="bottom-tab" onclick="goTo('active.html')"><span class="bottom-tab-icon"><i class="fa-solid fa-circle" style="color:#10B981;font-size:14px"></i></span><span>Active</span></button>
+    <button class="bottom-tab" onclick="goTo('search.html')"><span class="bottom-tab-icon"><i class="fa-solid fa-magnifying-glass"></i></span><span>Search</span></button>
+    <button class="bottom-tab" onclick="goTo('profile.html')"><span class="bottom-tab-icon"><i class="fa-solid fa-user"></i></span><span>Profile</span></button>
+    <button class="bottom-tab" onclick="goTo('settings.html')"><span class="bottom-tab-icon"><i class="fa-solid fa-gear"></i></span><span>Settings</span></button>
   </div>
-</div>
 
-<!-- FAB -->
-<div class="fab" onclick="showNewChat()"><i class="fa-solid fa-pen"></i></div>
+  <div class="fab" onclick="showNewChat()"><i class="fa-solid fa-pen"></i></div>
 
-<!-- NEW CHAT MODAL -->
-<div class="modal-overlay" id="newChatModal">
-  <div class="modal">
-    <div class="modal-title">New Chat</div>
-    <div class="search-field" style="margin-bottom:10px">
-      <i class="fa-solid fa-magnifying-glass" style="font-size:14px;color:var(--text3)"></i>
-      <input type="text" id="newChatSearch" placeholder="Search users..." oninput="searchUsersNewChat(this.value)">
+  <!-- NEW CHAT MODAL -->
+  <div class="modal-overlay" id="newChatModal">
+    <div class="modal">
+      <div class="modal-title">New Chat</div>
+      <div class="d-flex align-items-center gap-2 bg-[#172033] rounded-4 px-3 mb-2" style="border:1px solid var(--glass-border)">
+        <i class="fa-solid fa-magnifying-glass text-secondary-emphasis" style="font-size:14px"></i>
+        <input type="text" id="newChatSearch" placeholder="Search users..." class="flex-grow-1 bg-transparent text-white border-0 py-2" style="outline:none;font-size:15px" oninput="searchUsersNewChat(this.value)">
+      </div>
+      <div id="newChatResults" style="max-height:260px;overflow-y:auto"></div>
+      <button class="btn w-100 border-secondary text-secondary-emphasis fw-semibold mt-2" style="border-radius:18px;padding:13px" onclick="closeModal('newChatModal')">Cancel</button>
     </div>
-    <div id="newChatResults" style="max-height:260px;overflow-y:auto"></div>
-    <button class="btn btn-ghost btn-full" onclick="closeModal('newChatModal')" style="margin-top:8px">Cancel</button>
   </div>
-</div>
 
-<!-- PASSWORD MODAL -->
-<div class="modal-overlay" id="pwdModal">
-  <div class="modal">
-    <div class="modal-title">Change Password</div>
-    <div class="input-group"><label class="input-label">Current</label><input type="password" class="input-field" id="curPwd" placeholder="Current password"></div>
-    <div class="input-group"><label class="input-label">New</label><input type="password" class="input-field" id="newPwd" placeholder="New password"></div>
-    <div class="input-group"><label class="input-label">Confirm</label><input type="password" class="input-field" id="conPwd" placeholder="Confirm password"></div>
-    <button class="btn btn-primary btn-full" onclick="savePwd()">Save</button>
-    <button class="btn btn-ghost btn-full" onclick="closeModal('pwdModal')" style="margin-top:8px">Cancel</button>
+  <!-- PASSWORD MODAL -->
+  <div class="modal-overlay" id="pwdModal">
+    <div class="modal">
+      <div class="modal-title">Change Password</div>
+      <div class="mb-3"><label class="form-label text-uppercase text-secondary-emphasis small fw-semibold">Current</label><input type="password" class="form-control bg-[#172033] border-secondary text-white" id="curPwd" placeholder="Current password" style="border-radius:16px;padding:14px 16px"></div>
+      <div class="mb-3"><label class="form-label text-uppercase text-secondary-emphasis small fw-semibold">New</label><input type="password" class="form-control bg-[#172033] border-secondary text-white" id="newPwd" placeholder="New password" style="border-radius:16px;padding:14px 16px"></div>
+      <div class="mb-3"><label class="form-label text-uppercase text-secondary-emphasis small fw-semibold">Confirm</label><input type="password" class="form-control bg-[#172033] border-secondary text-white" id="conPwd" placeholder="Confirm password" style="border-radius:16px;padding:14px 16px"></div>
+      <button class="btn w-100 text-white fw-semibold border-0" style="background:#7C3AED;border-radius:18px;padding:13px" onclick="savePwd()">Save</button>
+      <button class="btn w-100 mt-2 border-secondary text-secondary-emphasis fw-semibold" style="border-radius:18px;padding:13px" onclick="closeModal('pwdModal')">Cancel</button>
+    </div>
   </div>
-</div>
 
-<!-- GITHUB TOKEN MODAL -->
-<div class="modal-overlay" id="gtModal">
-  <div class="modal">
-    <div class="modal-title">GitHub Token</div>
-    <div style="font-size:13px;color:var(--text3);text-align:center;margin-bottom:14px">Required for profile &amp; chat image uploads via GitHub API</div>
-    <div class="input-group"><label class="input-label">Personal Access Token</label><input type="text" class="input-field" id="gtInput" placeholder="ghp_..." autocomplete="off"></div>
-    <button class="btn btn-primary btn-full" onclick="saveGitToken()">Save</button>
-    <button class="btn btn-ghost btn-full" onclick="closeModal('gtModal')" style="margin-top:8px">Cancel</button>
+  <!-- GITHUB TOKEN MODAL -->
+  <div class="modal-overlay" id="gtModal">
+    <div class="modal">
+      <div class="modal-title">GitHub Token</div>
+      <p class="text-secondary-emphasis text-center small mb-3">Required for image uploads via GitHub API</p>
+      <div class="mb-3"><label class="form-label text-uppercase text-secondary-emphasis small fw-semibold">Personal Access Token</label><input type="text" class="form-control bg-[#172033] border-secondary text-white" id="gtInput" placeholder="ghp_..." style="border-radius:16px;padding:14px 16px" autocomplete="off"></div>
+      <button class="btn w-100 text-white fw-semibold border-0" style="background:#7C3AED;border-radius:18px;padding:13px" onclick="saveGitToken()">Save</button>
+      <button class="btn w-100 mt-2 border-secondary text-secondary-emphasis fw-semibold" style="border-radius:18px;padding:13px" onclick="closeModal('gtModal')">Cancel</button>
+    </div>
   </div>
-</div>
 
-<!-- PROFILE EDIT MODAL -->
-<div class="modal-overlay" id="hEditModal">
-  <div class="modal">
-    <div class="modal-title" id="hEditTitle">Edit</div>
-    <div id="hEditBody"></div>
-    <button class="btn btn-primary btn-full" onclick="saveHomeEdit()" id="hEditSaveBtn">Save</button>
-    <button class="btn btn-ghost btn-full" onclick="closeModal('hEditModal')" style="margin-top:8px">Cancel</button>
-  </div>
+  <input type="file" id="profileUpload" accept="image/*" class="d-none" onchange="changeHomePfp(event)">
 </div>
-
-<!-- IMAGE UPLOAD -->
-<input type="file" id="profileUpload" accept="image/*" style="display:none" onchange="changeHomePfp(event)">
 
 <script src="js/firebase.js"></script>
 <script src="js/app.js"></script>
@@ -242,34 +96,19 @@
 <script src="js/search.js"></script>
 <script src="js/notifications.js"></script>
 <script>
-function escapeHtml(t){const d=document.createElement('div');d.textContent=t;return d.innerHTML}
-
-let unsubChats=null,unsubActive=null,unsubUnread=null;
-let _allChats=[],_allArchived=[];
+let unsubChats=null, unsubActive=null, unsubUnread=null;
+let _allChats=[], _allArchived=[];
 
 function initHome(){
   if(!isLoggedIn()){goTo('login.html');return}
   initPresence();
   initNotifications();
-  loadTabProfile();
-  loadTabSettings();
   loadChatList();
-  loadActiveUsers();
   loadUnread();
   if(localStorage.getItem('anim')==='off')document.body.classList.add('no-anim');
 }
 (function(){if(document.readyState!=='loading')initHome();else document.addEventListener('DOMContentLoaded',initHome)})();
 
-function switchTab(id){
-  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.bottom-tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  document.querySelector(`[data-tab="${id}"]`).classList.add('active');
-  if(id==='tabProfile')loadTabProfile();
-  if(id==='tabSettings')loadTabSettings();
-}
-
-// ===== CHATS TAB =====
 function loadChatList(){
   if(unsubChats)unsubChats();
   unsubChats=listenChatList((chats,archived)=>{
@@ -282,34 +121,29 @@ function renderChats(){
   const c=document.getElementById('chatsList');
   const e=document.getElementById('chatsEmpty');
   c.innerHTML='';
-  if(!_allChats.length){c.style.display='none';e.style.display='flex';return}
-  c.style.display='block';e.style.display='none';
-  _allChats.forEach(chat=>{
-    c.appendChild(createChatItem(chat,false));
-  });
+  if(!_allChats.length){c.style.display='none';e.classList.remove('d-none');return}
+  c.style.display='block';e.classList.add('d-none');
+  _allChats.forEach(chat=>c.appendChild(createChatItem(chat,false)));
 }
 function createChatItem(chat,isArchived){
   const d=document.createElement('div');
   d.className='chat-item'+(chat.pinned?' pinned':'');
-  let avatar=chat.partnerImage?`<img class="avatar" src="${chat.partnerImage}" alt="">`:`<div class="avatar avatar-placeholder" style="font-size:18px">${(chat.partnerName||'?')[0]}</div>`;
-  let unreadB='';
-  // Check unread
   const my=uid();
-  if(chat._unread>0)unreadB=`<span class="unread-badge-sm">${chat._unread>99?'99+':chat._unread}</span>`;
+  const avatar=chat.partnerImage?`<img class="avatar" src="${chat.partnerImage}" alt="">`:`<div class="avatar avatar-placeholder" style="font-size:18px">${(chat.partnerName||'?')[0]}</div>`;
+  const unread=chat._unread>0?`<span class="unread-badge-sm">${chat._unread>99?'99+':chat._unread}</span>`:'';
   d.innerHTML=`
     ${chat.pinned?'<div class="chat-pin-icon"><i class="fa-solid fa-thumbtack"></i></div>':''}
-    <div style="position:relative;flex-shrink:0">${avatar}${chat.partnerOnline?'<div class="online-dot"></div>':''}${unreadB}</div>
+    <div style="position:relative;flex-shrink:0">${avatar}${chat.partnerOnline?'<div class="online-dot"></div>':''}${unread}</div>
     <div class="chat-item-info">
       <div class="chat-item-name">${escapeHtml(chat.partnerName)}</div>
       <div class="chat-item-preview">${chat.lastSender===my?'You: ':''}${escapeHtml(chat.lastMessage||'Start chatting')}</div>
     </div>
     <div class="chat-item-right">
       <div class="chat-item-time">${chat.lastTime?formatTime(chat.lastTime):''}</div>
-    </div>
-  `;
+    </div>`;
   d.onclick=()=>goTo('chat.html?id='+chat.id+'&partner='+chat.partnerId);
-  // Long press
-  let lt;d.addEventListener('mousedown',()=>{lt=setTimeout(()=>showChatContext(chat.id,chat.partnerName,isArchived),400)});
+  let lt;
+  d.addEventListener('mousedown',()=>{lt=setTimeout(()=>showChatContext(chat.id,chat.partnerName,isArchived),400)});
   d.addEventListener('mouseup',()=>clearTimeout(lt));d.addEventListener('mouseleave',()=>clearTimeout(lt));
   d.addEventListener('touchstart',()=>{lt=setTimeout(()=>showChatContext(chat.id,chat.partnerName,isArchived),400)});
   d.addEventListener('touchend',()=>clearTimeout(lt));
@@ -318,28 +152,27 @@ function createChatItem(chat,isArchived){
 function renderArchived(){
   const sec=document.getElementById('archivedSection');
   const tog=document.getElementById('archiveToggle');
-  if(!_allArchived.length){sec.style.display='none';tog.style.display='none';return}
-  tog.style.display='flex';
+  if(!_allArchived.length){sec.classList.add('d-none');tog.classList.add('d-none');return}
+  tog.classList.remove('d-none');
   document.getElementById('archiveCount').textContent='('+_allArchived.length+')';
   const l=document.getElementById('archivedList');l.innerHTML='';
-  _allArchived.forEach(chat=>{l.appendChild(createChatItem(chat,true))});
+  _allArchived.forEach(chat=>l.appendChild(createChatItem(chat,true)));
 }
 function toggleArchiveSection(){
   const s=document.getElementById('archivedSection');
-  s.style.display=s.style.display==='none'?'block':'none';
+  s.classList.toggle('d-none');
 }
 function showChatContext(chatId,partnerName,isArchived){
   const ov=document.createElement('div');ov.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;z-index:199;background:rgba(0,0,0,.3)';ov.onclick=()=>{menu.remove();ov.remove()};
-  const menu=document.createElement('div');menu.style.cssText='position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-radius:14px 14px 0 0;z-index:200;padding:14px;animation:fadeIn .2s ease;border-top:1px solid var(--glass-border)';
+  const menu=document.createElement('div');menu.style.cssText='position:fixed;bottom:0;left:0;right:0;background:#111827;border-radius:14px 14px 0 0;z-index:200;padding:14px;border-top:1px solid var(--glass-border)';
   let btns='';
-  if(isArchived){
-    btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px" onclick="closeCtxMenu();toggleArchiveChat('${chatId}',false)"><i class="fa-solid fa-box-archive"></i> Unarchive</button>`;
-  }else{
-    btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px" onclick="closeCtxMenu();togglePinChat('${chatId}')"><i class="fa-solid fa-thumbtack"></i> Toggle Pin</button>`;
-    btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px" onclick="closeCtxMenu();toggleArchiveChat('${chatId}',true)"><i class="fa-solid fa-box-archive"></i> Archive</button>`;
+  if(isArchived)btns+=`<button class="btn w-100 border-0 d-flex justify-content-start gap-3 py-3" style="color:var(--text2)" onclick="closeCtxMenu();toggleArchiveChat('${chatId}',false)"><i class="fa-solid fa-box-archive"></i> Unarchive</button>`;
+  else{
+    btns+=`<button class="btn w-100 border-0 d-flex justify-content-start gap-3 py-3" style="color:var(--text2)" onclick="closeCtxMenu();togglePinChat('${chatId}')"><i class="fa-solid fa-thumbtack"></i> Toggle Pin</button>`;
+    btns+=`<button class="btn w-100 border-0 d-flex justify-content-start gap-3 py-3" style="color:var(--text2)" onclick="closeCtxMenu();toggleArchiveChat('${chatId}',true)"><i class="fa-solid fa-box-archive"></i> Archive</button>`;
   }
-  btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px;color:var(--danger)" onclick="closeCtxMenu();deleteChatConfirm('${chatId}')"><i class="fa-solid fa-trash-can"></i> Delete Chat</button>`;
-  btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px" onclick="closeCtxMenu()">Cancel</button>`;
+  btns+=`<button class="btn w-100 border-0 d-flex justify-content-start gap-3 py-3 text-danger" onclick="closeCtxMenu();deleteChatConfirm('${chatId}')"><i class="fa-solid fa-trash-can"></i> Delete Chat</button>`;
+  btns+=`<button class="btn w-100 border-0 d-flex justify-content-start gap-3 py-3" style="color:var(--text2)" onclick="closeCtxMenu()">Cancel</button>`;
   menu.innerHTML=btns;document.body.appendChild(ov);document.body.appendChild(menu);
   window.closeCtxMenu=()=>{menu.remove();ov.remove()};
 }
@@ -349,312 +182,64 @@ async function deleteChatConfirm(chatId){
   catch(e){toast('Error','error')}
 }
 
-// ===== ACTIVE TAB =====
-function loadActiveUsers(){
-  if(unsubActive)unsubActive();
-  listenOnlineUsers(users=>{
-    const c=document.getElementById('activeUsers');
-    const e=document.getElementById('activeEmpty');
-    c.innerHTML='';
-    if(!users.length){c.style.display='none';e.style.display='flex';return}
-    c.style.display='block';e.style.display='none';
-    users.forEach(u=>{
-      const d=document.createElement('div');
-      d.className='user-row';
-      d.innerHTML=`
-        ${u.profileImage?`<img class="avatar" src="${u.profileImage}" alt="">`:`<div class="avatar avatar-placeholder" style="font-size:18px">${u.name[0]}</div>`}
-        <div class="user-row-info">
-          <div class="user-row-name">${escapeHtml(u.name)}</div>
-          <div class="user-row-sub online">Online</div>
-        </div>
-      `;
-      d.onclick=async()=>{const id=await getOrCreateChat(u.id);if(id)goTo('chat.html?id='+id+'&partner='+u.id)};
-      c.appendChild(d);
-    });
-  });
-}
-
-// ===== SEARCH TAB =====
-let searchTimer=null,searchFilter='users';
-function setSearchFilter(f){searchFilter=f;document.querySelectorAll('.search-filter').forEach(b=>b.classList.toggle('active',b.dataset.filter===f));const q=document.getElementById('searchInput').value;if(q)handleSearch(q)}
-function handleSearch(q){
-  clearTimeout(searchTimer);
-  searchTimer=setTimeout(()=>{
-    const c=document.getElementById('searchResults');
-    const e=document.getElementById('searchEmpty');
-    c.innerHTML='';
-    if(!q){c.style.display='none';e.style.display='flex';document.getElementById('searchEmptyTitle').textContent='Search';document.getElementById('searchEmptyDesc').textContent='Type to search';return}
-    if(searchFilter==='users')searchUsers(q,users=>{
-      if(!users.length){c.style.display='none';e.style.display='flex';document.getElementById('searchEmptyTitle').textContent='No users found';document.getElementById('searchEmptyDesc').textContent='Try a different name';return}
-      c.style.display='block';e.style.display='none';
-      users.forEach(u=>{
-        const d=document.createElement('div');d.className='user-row';
-        d.innerHTML=`${u.profileImage?`<img class="avatar" src="${u.profileImage}" alt="">`:`<div class="avatar avatar-placeholder" style="font-size:18px">${u.name[0]}</div>`}<div class="user-row-info"><div class="user-row-name">${escapeHtml(u.name)}</div></div><button class="btn btn-sm btn-primary" onclick="event.stopPropagation();startChatWith('${u.id}')">Chat</button>`;
-        d.onclick=()=>startChatWith(u.id);c.appendChild(d);
-      });
-    });else if(searchFilter==='chats')searchChats(q,chats=>{
-      if(!chats.length){c.style.display='none';e.style.display='flex';document.getElementById('searchEmptyTitle').textContent='No chats found';document.getElementById('searchEmptyDesc').textContent='Try a different search term';return}
-      c.style.display='block';e.style.display='none';
-      chats.forEach(ch=>{
-        const d=document.createElement('div');d.className='user-row';
-        d.innerHTML=`${ch.partnerImage?`<img class="avatar" src="${ch.partnerImage}" alt="">`:`<div class="avatar avatar-placeholder" style="font-size:18px">${ch.partnerName[0]}</div>`}<div class="user-row-info"><div class="user-row-name">${escapeHtml(ch.partnerName)}</div><div class="user-row-sub">${escapeHtml(ch.lastMessage)}</div></div>`;
-        d.onclick=()=>goTo('chat.html?id='+ch.id+'&partner='+ch.partnerId);c.appendChild(d);
-      });
-    });else if(searchFilter==='messages')searchInbox(q,msgs=>{
-      if(!msgs.length){c.style.display='none';e.style.display='flex';document.getElementById('searchEmptyTitle').textContent='No messages found';document.getElementById('searchEmptyDesc').textContent='Try a different search term';return}
-      c.style.display='block';e.style.display='none';
-      msgs.forEach(m=>{
-        const d=document.createElement('div');d.className='user-row';
-        d.innerHTML=`<div class="avatar avatar-sm avatar-placeholder" style="font-size:13px">${m.partnerName[0]}</div><div class="user-row-info"><div class="user-row-name">${escapeHtml(m.partnerName)}</div><div class="user-row-sub">${escapeHtml(m.text)}</div></div><div style="font-size:11px;color:var(--text3)">${formatTime(m.timestamp)}</div>`;
-        d.onclick=()=>goTo('chat.html?id='+m.chatId+'&partner='+m.partnerId);c.appendChild(d);
-      });
-    });
-  },300);
-}
-
-async function startChatWith(id){
-  const chatId=await getOrCreateChat(id);
-  if(chatId)goTo('chat.html?id='+chatId+'&partner='+id);
-}
-
-// ===== PROFILE TAB =====
-let _hEditField=null,_hEditVal=null;
-
-function loadTabProfile(){
-  const uid=localStorage.getItem('uid');
-  if(!uid)return;
-  REFS.users.child(uid).once('value',snap=>{
-    const u=snap.val();
-    if(!u)return;
-    const img=document.getElementById('hPfpImg');
-    const pl=document.getElementById('hPfpPl');
-    if(u.profileImage){img.src=u.profileImage;img.style.display='block';pl.style.display='none'}
-    else{img.style.display='none';pl.style.display='flex';pl.textContent=u.name[0]}
-    document.getElementById('hName').textContent=u.name||'-';
-    document.getElementById('hUsername').textContent='@'+(u.username||(u.userId||'').slice(-6));
-    document.getElementById('hBio').textContent=u.bio||'No bio yet';
-    document.getElementById('hAge').textContent=u.age||'-';
-    document.getElementById('hMarital').textContent=u.maritalStatus==='married'?'Married':'Unmarried';
-    document.getElementById('hGender').textContent=u.gender==='female'?'Female':'Male';
-    const days=Math.floor((Date.now()-(u.createdAt||Date.now()))/86400000);
-    document.getElementById('hDays').textContent=days||1;
-    REFS.chats.once('value',s=>{let c=0;s.forEach(ch=>{if(ch.val().participants&&ch.val().participants[uid])c++});document.getElementById('hChats').textContent=c-1||0});
-  });
-}
-
-function openHomeEdit(field){
-  _hEditField=field;
-  const labels={name:'Name',username:'Username',bio:'Bio',age:'Age',marital:'Marital Status',gender:'Gender'};
-  document.getElementById('hEditTitle').textContent='Edit '+labels[field];
-  const body=document.getElementById('hEditBody');
-  body.innerHTML='';
-  if(field==='marital'){
-    body.innerHTML=`<div style="display:flex;gap:10px;margin-bottom:14px"><button class="btn" data-v="unmarried" onclick="hSelectMarital('unmarried')" style="flex:1;border-radius:var(--radius-btn);padding:12px"><i class="fa-solid fa-heart"></i> Unmarried</button><button class="btn" data-v="married" onclick="hSelectMarital('married')" style="flex:1;border-radius:var(--radius-btn);padding:12px"><i class="fa-solid fa-heart"></i> Married</button></div>`;
-    _hEditVal=document.getElementById('hMarital').textContent==='Married'?'married':'unmarried';
-    hHighlightMarital();
-  }else if(field==='gender'){
-    body.innerHTML=`<div style="display:flex;gap:10px;margin-bottom:14px"><button class="btn" data-v="male" onclick="hSelectGender('male')" style="flex:1;border-radius:var(--radius-btn);padding:12px"><i class="fa-solid fa-mars"></i> Male</button><button class="btn" data-v="female" onclick="hSelectGender('female')" style="flex:1;border-radius:var(--radius-btn);padding:12px"><i class="fa-solid fa-venus"></i> Female</button></div>`;
-    _hEditVal=document.getElementById('hGender').textContent==='Female'?'female':'male';
-    hHighlightGender();
-  }else{
-    const ph={name:'Your name',username:'Username',bio:'Write your bio...',age:'Your age'};
-    const cur={name:document.getElementById('hName').textContent,username:document.getElementById('hUsername').textContent.replace('@',''),bio:document.getElementById('hBio').textContent==='No bio yet'?'':document.getElementById('hBio').textContent,age:document.getElementById('hAge').textContent==='-'?'':document.getElementById('hAge').textContent};
-    const inputType=field==='age'?'number':'text';
-    const maxLen=field==='bio'?'100':field==='age'?'3':'50';
-    body.innerHTML=`<div class="input-group"><input type="${inputType}" class="input-field" id="hEditInput" placeholder="${ph[field]}" maxlength="${maxLen}" value="${escapeHtml(cur[field])}"></div>`;
-    _hEditVal=cur[field];
-    setTimeout(()=>{const el=document.getElementById('hEditInput');if(el){el.focus();el.select()}},200);
-  }
-  document.getElementById('hEditSaveBtn').textContent='Save';
-  document.getElementById('hEditModal').classList.add('active');
-}
-
-function hSelectMarital(v){_hEditVal=v;hHighlightMarital()}
-function hHighlightMarital(){document.querySelectorAll('#hEditBody button[data-v]').forEach(b=>{b.className='btn btn-ghost';if(b.dataset.v===_hEditVal)b.className='btn btn-primary'})}
-function hSelectGender(v){_hEditVal=v;hHighlightGender()}
-function hHighlightGender(){document.querySelectorAll('#hEditBody button[data-v]').forEach(b=>{b.className='btn btn-ghost';if(b.dataset.v===_hEditVal)b.className='btn btn-primary'})}
-
-async function saveHomeEdit(){
-  const btn=document.getElementById('hEditSaveBtn');
-  btn.disabled=true;btn.textContent='Saving...';
-  let val=_hEditVal;
-  if(_hEditField!=='marital'&&_hEditField!=='gender'){
-    val=document.getElementById('hEditInput').value.trim();
-    if(!val){toast('Please enter a value','error');btn.disabled=false;btn.textContent='Save';return}
-    if(_hEditField==='age'){const n=parseInt(val);if(isNaN(n)||n<1||n>150){toast('Enter a valid age (1-150)','error');btn.disabled=false;btn.textContent='Save';return}}
-  }
-  const data={};
-  if(_hEditField==='name')data.name=val;
-  else if(_hEditField==='username')data.username=val;
-  else if(_hEditField==='bio')data.bio=val;
-  else if(_hEditField==='age')data.age=val;
-  else if(_hEditField==='marital')data.maritalStatus=val;
-  else if(_hEditField==='gender')data.gender=val;
-  await updateProfile(data);
-  closeModal('hEditModal');
-  loadTabProfile();
-  btn.disabled=false;btn.textContent='Save';
-}
-
-async function changeHomePfp(e){
-  const f=e.target.files[0];if(!f||f.size>5*1024*1024){toast('Image too large','error');return}
-  const prog=document.getElementById('hUploadProg');prog.style.display='block';const bar=prog.querySelector('.upload-progress-bar');bar.style.width='0%';
-  updateProfileImage(f,(loaded,total)=>{
-    bar.style.width=Math.min(100,Math.round(loaded/total*100))+'%';
-  }).then(url=>{
-    if(url){bar.style.width='100%';setTimeout(()=>{prog.style.display='none'},600);document.getElementById('hPfpImg').src=url;document.getElementById('hPfpImg').style.display='block';document.getElementById('hPfpPl').style.display='none'}
-    else{prog.style.display='none';toast('Upload failed','error')}
-  });
-}
-
-// ===== SETTINGS TAB =====
-function loadTabSettings(){
-  const t=localStorage.getItem('theme');
-  const n=localStorage.getItem('notif');
-  const s=localStorage.getItem('sound');
-  const r=localStorage.getItem('readReceipts');
-  const v=localStorage.getItem('vibrate');
-  const a=localStorage.getItem('anim');
-  document.getElementById('themeToggle').classList.toggle('active',t!=='light');
-  document.getElementById('notifToggle').classList.toggle('active',n!=='off');
-  document.getElementById('soundToggle').classList.toggle('active',s!=='off');
-  document.getElementById('rrToggle').classList.toggle('active',r!=='off');
-  document.getElementById('vibToggle').classList.toggle('active',v!=='off');
-  document.getElementById('animToggle').classList.toggle('active',a!=='off');
-  if(t==='light')document.body.classList.add('light');
-  updateGtStatus();
-}
-
-function toggleTheme(){
-  const t=document.getElementById('themeToggle');
-  t.classList.toggle('active');
-  document.body.classList.toggle('light');
-  localStorage.setItem('theme',t.classList.contains('active')?'dark':'light');
-}
-
-function toggleNotif(){
-  const t=document.getElementById('notifToggle');
-  t.classList.toggle('active');
-  localStorage.setItem('notif',t.classList.contains('active')?'on':'off');
-  if(t.classList.contains('active'))initNotifications();
-}
-
-function toggleSound(){
-  const t=document.getElementById('soundToggle');
-  t.classList.toggle('active');
-  localStorage.setItem('sound',t.classList.contains('active')?'on':'off');
-}
-
-function toggleReadReceipts(){
-  const t=document.getElementById('rrToggle');
-  t.classList.toggle('active');
-  localStorage.setItem('readReceipts',t.classList.contains('active')?'on':'off');
-}
-function toggleVibrate(){
-  const t=document.getElementById('vibToggle');
-  t.classList.toggle('active');
-  localStorage.setItem('vibrate',t.classList.contains('active')?'on':'off');
-}
-function toggleAnim(){
-  const t=document.getElementById('animToggle');
-  t.classList.toggle('active');
-  const on=t.classList.contains('active');
-  localStorage.setItem('anim',on?'on':'off');
-  document.body.classList.toggle('no-anim',!on);
-}
-function clearCache(){
-  if('caches'in window){caches.keys().then(keys=>Promise.all(keys.map(k=>caches.delete(k)))).then(()=>toast('Cache cleared','success'))}
-  else toast('Cache clearing not supported','error');
-}
-
-function changePwd(){document.getElementById('pwdModal').classList.add('active')}
-
-async function savePwd(){
-  const cur=document.getElementById('curPwd').value;
-  const n=document.getElementById('newPwd').value;
-  const c=document.getElementById('conPwd').value;
-  if(!cur||!n||!c){toast('Fill all fields','error');return}
-  if(n.length<6){toast('Password must be 6+ characters','error');return}
-  if(n!==c){toast('Passwords do not match','error');return}
-  const uid=localStorage.getItem('uid');
-  const snap=await REFS.users.child(uid).once('value');
-  const user=snap.val();
-  if(!user){toast('User not found','error');return}
-  const hash=await sha256(cur);
-  if(hash!==user.passwordHash){toast('Wrong current password','error');return}
-  const nh=await sha256(n);
-  await REFS.users.child(uid).update({passwordHash:nh});
-  toast('Password changed','success');
-  closeModal('pwdModal');
-  document.getElementById('curPwd').value='';document.getElementById('newPwd').value='';document.getElementById('conPwd').value='';
-}
-
-function closeModal(id){document.getElementById(id).classList.remove('active')}
-
-// ===== UNREAD =====
+// UNREAD
 function loadUnread(){
   if(unsubUnread)unsubUnread();
   listenUnreadCount(c=>{
-    const tabs=document.querySelectorAll('.bottom-tab');
-    const chatTab=tabs[0];
-    let badge=chatTab.querySelector('.unread-badge');
+    const badge=document.querySelector('.bottom-tab.active .unread-badge');
     if(c>0){
-      if(!badge){badge=document.createElement('span');badge.className='unread-badge';badge.style.cssText='position:absolute;top:-2px;right:-4px;min-width:16px;height:16px;border-radius:8px;background:#EF4444;color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px';chatTab.style.position='relative';chatTab.appendChild(badge)}
-      badge.textContent=c>99?'99+':c;
-    }else if(badge){badge.remove()}
+      if(!badge){const b=document.createElement('span');b.className='unread-badge';const tab=document.querySelector('.bottom-tab.active');if(tab){b.textContent=c>99?'99+':c;tab.style.position='relative';tab.appendChild(b)}}
+      else{badge.textContent=c>99?'99+':c}
+    }else if(badge)badge.remove();
   });
 }
 
-// ===== NEW CHAT =====
+// NEW CHAT
 function showNewChat(){
   document.getElementById('newChatModal').classList.add('active');
   document.getElementById('newChatSearch').value='';
   document.getElementById('newChatResults').innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);font-size:14px">Search for users</div>';
   document.getElementById('newChatSearch').focus();
 }
-
 function searchUsersNewChat(q){
   searchUsers(q,users=>{
-    const c=document.getElementById('newChatResults');
-    c.innerHTML='';
+    const c=document.getElementById('newChatResults');c.innerHTML='';
     if(!users.length||!q){if(!q)c.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);font-size:14px">Search for users</div>';return}
     users.forEach(u=>{
-      const d=document.createElement('div');
-      d.className='user-row';
-      d.innerHTML=`
-        ${u.profileImage?`<img class="avatar avatar-sm" src="${u.profileImage}" alt="">`:`<div class="avatar avatar-sm avatar-placeholder" style="font-size:13px">${u.name[0]}</div>`}
-        <div style="flex:1;font-weight:500;font-size:14px">${escapeHtml(u.name)}</div>
-      `;
+      const d=document.createElement('div');d.className='user-row';
+      d.innerHTML=`${u.profileImage?`<img class="avatar avatar-sm" src="${u.profileImage}" alt="">`:`<div class="avatar avatar-sm avatar-placeholder" style="font-size:13px">${u.name[0]}</div>`}<div style="flex:1;font-weight:500;font-size:14px">${escapeHtml(u.name)}</div>`;
       d.onclick=async()=>{closeModal('newChatModal');const id=await getOrCreateChat(u.id);if(id)goTo('chat.html?id='+id+'&partner='+u.id)};
       c.appendChild(d);
     });
   });
 }
 
-function showGitToken(){
-  document.getElementById('gtInput').value=localStorage.getItem('gt')||'';
-  document.getElementById('gtModal').classList.add('active');
-}
-function saveGitToken(){
-  const v=document.getElementById('gtInput').value.trim();
-  if(!v||!v.startsWith('ghp_')){toast('Invalid token format','error');return}
-  localStorage.setItem('gt',v);
-  window.__GT=v;
-  updateGtStatus();
-  closeModal('gtModal');
-  toast('Token saved','success');
-}
-function updateGtStatus(){
-  const s=document.getElementById('gtStatus');
-  const t=localStorage.getItem('gt');
-  s.innerHTML=t?'<i class="fa-solid fa-circle" style="color:#10B981"></i>':'<i class="fa-regular fa-circle"></i>';
-}
-async function logout(){
-  if(!confirm('Logout from SEVEN?'))return;
+// PASSWORD
+function changePwd(){document.getElementById('pwdModal').classList.add('active')}
+async function savePwd(){
+  const cur=document.getElementById('curPwd').value,n=document.getElementById('newPwd').value,c=document.getElementById('conPwd').value;
+  if(!cur||!n||!c){toast('Fill all fields','error');return}
+  if(n.length<6){toast('6+ characters','error');return}
+  if(n!==c){toast('Passwords do not match','error');return}
   const uid=localStorage.getItem('uid');
-  if(uid)try{await REFS.users.child(uid).update({onlineStatus:false,lastSeen:Date.now()})}catch(e){}
-  clearSession();
-  goTo('login.html');
+  const snap=await REFS.users.child(uid).once('value');const user=snap.val();
+  if(!user){toast('User not found','error');return}
+  if(await sha256(cur)!==user.passwordHash){toast('Wrong password','error');return}
+  await REFS.users.child(uid).update({passwordHash:await sha256(n)});
+  toast('Password changed','success');closeModal('pwdModal');
+  document.getElementById('curPwd').value='';document.getElementById('newPwd').value='';document.getElementById('conPwd').value='';
+}
+
+// GITHUB TOKEN
+function showGitToken(){document.getElementById('gtInput').value=localStorage.getItem('gt')||'';document.getElementById('gtModal').classList.add('active')}
+function saveGitToken(){const v=document.getElementById('gtInput').value.trim();if(!v||!v.startsWith('ghp_')){toast('Invalid token','error');return}localStorage.setItem('gt',v);window.__GT=v;closeModal('gtModal');toast('Token saved','success')}
+function closeModal(id){document.getElementById(id).classList.remove('active')}
+
+// PFP UPLOAD
+async function changeHomePfp(e){
+  const f=e.target.files[0];if(!f||f.size>5*1024*1024){toast('Image too large','error');return}
+  const url=await updateProfileImage(f);
+  if(url){toast('Photo updated','success')}
 }
 </script>
 </body>

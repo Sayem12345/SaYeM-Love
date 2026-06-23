@@ -11,34 +11,40 @@
 <title>SEVEN - Login</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@400;500;600;700;800&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+<script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="css/style.css">
-<link rel="stylesheet" href="css/mobile.css">
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 </head>
-<body>
-<div class="auth-page">
-  <div style="position:fixed;top:12px;left:12px;z-index:10;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--glass);backdrop-filter:blur(10px);border:1px solid var(--glass-border);cursor:pointer;font-size:18px;color:var(--text2)" onclick="history.back()"><i class="fa-solid fa-arrow-left"></i></div>
+<body class="bg-[#0B1220] flex items-center justify-center min-vh-100 p-3" style="font-family:'Inter',sans-serif">
+<div class="position-fixed top-0 start-0 z-3 m-2">
+  <button class="btn btn-outline-light rounded-circle d-flex align-items-center justify-content-center" style="width:38px;height:38px" onclick="history.back()"><i class="fa-solid fa-arrow-left"></i></button>
+</div>
+<div class="text-center mb-2">
   <div class="auth-brand">SEVEN</div>
-  <div class="auth-sub">Welcome back</div>
-  <div class="auth-card">
-    <div class="auth-step active">
-      <div class="auth-step-title">Login</div>
-      <div style="text-align:center;margin-bottom:16px">
-        <img id="loginImg" src="" class="avatar avatar-xl" style="display:none;margin:0 auto" alt="">
-        <div id="loginPl" class="avatar avatar-xl avatar-placeholder" style="margin:0 auto;font-size:32px">?</div>
-        <div style="font-size:14px;color:var(--text3);margin-top:8px" id="loginName">Enter your password</div>
-      </div>
-      <div class="input-group"><label class="input-label">Password</label><input type="password" class="input-field" id="loginPwd" placeholder="Password" autocomplete="current-password"></div>
-      <button class="btn btn-primary btn-full btn-lg" id="loginBtn" onclick="handleLogin()"><span class="spinner spinner-sm" id="loginSpin" style="display:none"></span><span id="loginTxt">Login</span></button>
-      <div style="text-align:center;margin-top:14px;font-size:14px;color:var(--text3)">No account? <a href="registration.html" style="font-weight:600">Register</a></div>
+  <div class="text-secondary-emphasis" style="font-size:14px">Welcome back</div>
+</div>
+<div class="card border-0 shadow" style="width:100%;max-width:380px;background:var(--glass);backdrop-filter:blur(40px);border-radius:20px;border:1px solid var(--glass-border)">
+  <div class="card-body p-4">
+    <h4 class="text-center fw-bold mb-4 text-white">Login</h4>
+    <div class="text-center mb-3">
+      <img id="loginImg" src="" class="avatar avatar-xl d-none mx-auto" alt="">
+      <div id="loginPl" class="avatar avatar-xl avatar-placeholder mx-auto" style="font-size:32px">?</div>
+      <div class="text-secondary-emphasis mt-2" id="loginName">Enter your password</div>
     </div>
+    <div class="mb-3">
+      <label class="form-label text-uppercase text-secondary-emphasis small fw-semibold">Password</label>
+      <input type="password" class="form-control bg-[#172033] border-secondary text-white" id="loginPwd" placeholder="Password" autocomplete="current-password" style="border-radius:16px;padding:14px 16px">
+    </div>
+    <button class="btn w-100 btn-lg text-white fw-semibold border-0" id="loginBtn" onclick="handleLogin()" style="background:#7C3AED;border-radius:18px;padding:15px">
+      <span class="spinner-border spinner-border-sm d-none" id="loginSpin" role="status"></span>
+      <span id="loginTxt">Login</span>
+    </button>
+    <div class="text-center mt-3 text-secondary-emphasis" style="font-size:14px">No account? <a href="registration.html" class="fw-semibold" style="color:#7C3AED">Register</a></div>
   </div>
 </div>
 <script src="js/firebase.js"></script>
@@ -52,7 +58,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     const u=snap.val();
     if(!u)return;
     document.getElementById('loginName').textContent='Hi, '+u.name;
-    if(u.profileImage){document.getElementById('loginImg').src=u.profileImage;document.getElementById('loginImg').style.display='block';document.getElementById('loginPl').style.display='none'}
+    if(u.profileImage){document.getElementById('loginImg').src=u.profileImage;document.getElementById('loginImg').classList.remove('d-none');document.getElementById('loginPl').classList.add('d-none')}
     else{document.getElementById('loginPl').textContent=u.name[0]}
   });
   document.getElementById('loginPwd').addEventListener('keydown',e=>{if(e.key==='Enter')handleLogin()});
@@ -61,10 +67,10 @@ async function handleLogin(){
   const pwd=document.getElementById('loginPwd').value;
   if(!pwd){toast('Enter password','error');return}
   const btn=document.getElementById('loginBtn');const spin=document.getElementById('loginSpin');const txt=document.getElementById('loginTxt');
-  btn.disabled=true;spin.style.display='inline-block';txt.textContent='Logging in...';
+  btn.disabled=true;spin.classList.remove('d-none');txt.textContent='Logging in...';
   const u=await loginUser(pwd);
   if(u){goTo('home.html')}
-  else{btn.disabled=false;spin.style.display='none';txt.textContent='Login'}
+  else{btn.disabled=false;spin.classList.add('d-none');txt.textContent='Login'}
 }
 </script>
 </body>

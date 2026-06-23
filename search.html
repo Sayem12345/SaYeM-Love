@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="theme-color" content="#0B1220">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%237C3AED'/%3E%3Cstop offset='100%25' stop-color='%238B5CF6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='96' cy='96' r='96' fill='url(%23g)'/%3E%3Cpath d='M38,75 Q96,49 154,75 Q157,82 154,90 Q96,128 38,90 Q35,82 38,75Z' fill='%230B1220'/%3E%3Cpath d='M49,81 Q96,60 143,81 L141,88 Q96,116 51,88Z' fill='%231E293B'/%3E%3Cellipse cx='71' cy='88' rx='6' ry='8' fill='%2306B6D4'/%3E%3Cellipse cx='121' cy='88' rx='6' ry='8' fill='%2306B6D4'/%3E%3Cellipse cx='71' cy='88' rx='2' ry='3' fill='%23fff'/%3E%3Cellipse cx='121' cy='88' rx='2' ry='3' fill='%23fff'/%3E%3Cpath d='M79,103 Q96,111 113,103' stroke='%2306B6D4' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3Ctext x='96' y='145' font-size='16' font-weight='900' text-anchor='middle' fill='%23fff' font-family='Arial,Helvetica,sans-serif' letter-spacing='2'%3ESEVEN%3C/text%3E%3C/svg%3E" sizes="192x192">
+<title>SEVEN - Search</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="css/style.css">
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+</head>
+<body class="bg-[#0B1220] text-white d-flex flex-column" style="font-family:'Inter',sans-serif">
+<div class="topbar">
+  <button class="topbar-btn" onclick="history.back()"><i class="fa-solid fa-arrow-left"></i></button>
+  <div class="topbar-center"><div class="topbar-title">Search</div></div>
+  <div style="width:38px"></div>
+</div>
+<div class="search-bar">
+  <div class="d-flex align-items-center gap-2 bg-[#172033] rounded-4 px-3" style="border:1px solid var(--glass-border)">
+    <i class="fa-solid fa-magnifying-glass text-secondary-emphasis" style="font-size:14px"></i>
+    <input type="text" id="searchInput" placeholder="Search users, chats, messages..." class="flex-grow-1 bg-transparent text-white border-0 py-2" style="outline:none;font-size:15px" oninput="handleSearch(this.value)">
+  </div>
+  <div class="d-flex gap-1 mt-2" id="searchFilters">
+    <button class="search-filter active" data-filter="users" onclick="setSearchFilter('users')">Users</button>
+    <button class="search-filter" data-filter="chats" onclick="setSearchFilter('chats')">Chats</button>
+    <button class="search-filter" data-filter="messages" onclick="setSearchFilter('messages')">Messages</button>
+  </div>
+</div>
+<div id="searchResults" class="flex-grow-1 overflow-y-auto px-2"></div>
+<div id="searchEmpty" class="empty">
+  <div class="empty-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
+  <div class="empty-title" id="searchEmptyTitle">Search users</div>
+  <div class="empty-desc" id="searchEmptyDesc">Type a name to find people</div>
+</div>
+<script src="js/firebase.js"></script>
+<script src="js/app.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/search.js"></script>
+<script>
+let searchTimer=null,searchFilter='users';
+function initSearch(){
+  if(!isLoggedIn()){goTo('login.html');return}
+}
+(function(){if(document.readyState!=='loading')initSearch();else document.addEventListener('DOMContentLoaded',initSearch)})();
+function setSearchFilter(f){searchFilter=f;document.querySelectorAll('.search-filter').forEach(b=>b.classList.toggle('active',b.dataset.filter===f));const q=document.getElementById('searchInput').value;if(q)handleSearch(q)}
+function handleSearch(q){
+  clearTimeout(searchTimer);
+  searchTimer=setTimeout(()=>{
+    const c=document.getElementById('searchResults');const e=document.getElementById('searchEmpty');
+    c.innerHTML='';
+    if(!q){c.style.display='none';e.classList.remove('d-none');document.getElementById('searchEmptyTitle').textContent='Search';document.getElementById('searchEmptyDesc').textContent='Type to search';return}
+    if(searchFilter==='users')searchUsers(q,users=>{
+      if(!users.length){c.style.display='none';e.classList.remove('d-none');document.getElementById('searchEmptyTitle').textContent='No users found';document.getElementById('searchEmptyDesc').textContent='Try a different name';return}
+      c.style.display='block';e.classList.add('d-none');
+      users.forEach(u=>{const d=document.createElement('div');d.className='user-row';d.innerHTML=`${u.profileImage?`<img class="avatar" src="${u.profileImage}" alt="">`:`<div class="avatar avatar-placeholder" style="font-size:18px">${u.name[0]}</div>`}<div class="user-row-info"><div class="user-row-name">${escapeHtml(u.name)}</div></div><button class="btn text-white fw-semibold border-0 btn-sm" style="background:#7C3AED;border-radius:14px" onclick="event.stopPropagation();startChatWith('${u.id}')">Chat</button>`;d.onclick=()=>startChatWith(u.id);c.appendChild(d)});
+    });else if(searchFilter==='chats')searchChats(q,chats=>{
+      if(!chats.length){c.style.display='none';e.classList.remove('d-none');document.getElementById('searchEmptyTitle').textContent='No chats found';document.getElementById('searchEmptyDesc').textContent='Try another term';return}
+      c.style.display='block';e.classList.add('d-none');
+      chats.forEach(ch=>{const d=document.createElement('div');d.className='user-row';d.innerHTML=`${ch.partnerImage?`<img class="avatar" src="${ch.partnerImage}" alt="">`:`<div class="avatar avatar-placeholder" style="font-size:18px">${ch.partnerName[0]}</div>`}<div class="user-row-info"><div class="user-row-name">${escapeHtml(ch.partnerName)}</div><div class="user-row-sub">${escapeHtml(ch.lastMessage)}</div></div>`;d.onclick=()=>goTo('chat.html?id='+ch.id+'&partner='+ch.partnerId);c.appendChild(d)});
+    });else if(searchFilter==='messages')searchInbox(q,msgs=>{
+      if(!msgs.length){c.style.display='none';e.classList.remove('d-none');document.getElementById('searchEmptyTitle').textContent='No messages found';document.getElementById('searchEmptyDesc').textContent='Try another term';return}
+      c.style.display='block';e.classList.add('d-none');
+      msgs.forEach(m=>{const d=document.createElement('div');d.className='user-row';d.innerHTML=`<div class="avatar avatar-sm avatar-placeholder" style="font-size:13px">${m.partnerName[0]}</div><div class="user-row-info"><div class="user-row-name">${escapeHtml(m.partnerName)}</div><div class="user-row-sub">${escapeHtml(m.text)}</div></div><div class="text-secondary-emphasis small">${formatTime(m.timestamp)}</div>`;d.onclick=()=>goTo('chat.html?id='+m.chatId+'&partner='+m.partnerId);c.appendChild(d)});
+    });
+  },300);
+}
+async function startChatWith(id){const chatId=await getOrCreateChat(id);if(chatId)goTo('chat.html?id='+chatId+'&partner='+id)}
+</script>
+</body>
+</html>
