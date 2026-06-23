@@ -145,6 +145,30 @@ function initSounds(){
 }
 document.addEventListener('DOMContentLoaded',initSounds);
 
+// ===== ANDROID BACK BUTTON =====
+let backTimer=null;
+function initAndroidBack(){
+  if(!history.state||!history.state._seven){
+    history.pushState({_seven:true},'');
+  }
+  window.addEventListener('popstate',e=>{
+    const page=window.location.pathname.split('/').pop();
+    if(!page||page==='home.html'||page==='index.html'||page===''){
+      if(backTimer){
+        clearTimeout(backTimer);backTimer=null;
+        try{if(navigator.app&&navigator.app.exitApp)navigator.app.exitApp()}catch(ex){}
+        return;
+      }
+      toast('Press back again to exit','');
+      backTimer=setTimeout(()=>{backTimer=null},2000);
+      history.pushState({_seven:true},'');
+    }else{
+      window.location.replace('home.html');
+    }
+  });
+}
+document.addEventListener('DOMContentLoaded',initAndroidBack);
+
 // ===== SERVICE WORKER =====
 if('serviceWorker'in navigator){
   window.addEventListener('load',()=>{
