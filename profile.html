@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="theme-color" content="#0F172A">
+<link rel="manifest" href="manifest.json">
+<title>SEVEN - Profile</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/mobile.css">
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+</head>
+<body>
+<div class="topbar">
+  <button class="topbar-btn" onclick="goTo('home.html')">←</button>
+  <div class="topbar-center">
+    <div class="topbar-title">Profile</div>
+  </div>
+  <button class="topbar-btn" onclick="goTo('settings.html')">⚙️</button>
+</div>
+
+<div style="flex:1;overflow-y:auto">
+  <div class="profile-header">
+    <div style="position:relative;cursor:pointer" onclick="document.getElementById('profileUpload').click()">
+      <img id="profileImage" src="" class="avatar avatar-xxl" alt="" style="display:none">
+      <div id="profilePlaceholder" class="avatar avatar-xxl avatar-placeholder" style="font-size:48px">?</div>
+      <div style="position:absolute;bottom:4px;right:4px;width:32px;height:32px;border-radius:50%;background:#3B82F6;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;border:2px solid #0F172A">📷</div>
+    </div>
+    <div class="profile-name" id="profileName">User</div>
+    <div class="profile-username" id="profileUsername">@user</div>
+    <div class="profile-bio" id="profileBio">No bio yet</div>
+  </div>
+
+  <div class="profile-stats" style="border-top:1px solid rgba(255,255,255,0.08);border-bottom:1px solid rgba(255,255,255,0.08);margin:0 16px;padding:16px 0">
+    <div class="profile-stat">
+      <div class="profile-stat-num" id="profileFriends">0</div>
+      <div class="profile-stat-label">Friends</div>
+    </div>
+    <div class="profile-stat">
+      <div class="profile-stat-num" id="profileChats">0</div>
+      <div class="profile-stat-label">Chats</div>
+    </div>
+    <div class="profile-stat">
+      <div class="profile-stat-num" id="profileDays">0</div>
+      <div class="profile-stat-label">Days</div>
+    </div>
+  </div>
+
+  <div class="settings-list" style="padding-top:8px">
+    <div class="settings-item" onclick="document.getElementById('bioInput').style.display='block';this.style.display='none'">
+      <div class="settings-item-left">
+        <div class="settings-item-icon blue">✏️</div>
+        <div>
+          <div class="settings-item-label">Edit Bio</div>
+          <div class="settings-item-desc">Add a short description</div>
+        </div>
+      </div>
+    </div>
+    <div id="bioInput" style="display:none;padding:12px 16px">
+      <div class="input-group" style="margin:0">
+        <input type="text" class="input-field" id="bioField" placeholder="Write your bio..." maxlength="100">
+      </div>
+      <button class="btn btn-sm btn-primary" onclick="saveBio()">Save</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="profileUpload" accept="image/*" style="display:none" onchange="handleProfileImageChange(event)">
+
+<script src="js/firebase.js"></script>
+<script src="js/app.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/chat.js"></script>
+<script src="js/profile.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded',async()=>{
+  if(!isLoggedIn()){goTo('login.html');return}
+  const user=await loadMyProfile();
+  if(user){
+    // Calculate days since created
+    const created=user.createdAt||Date.now();
+    const days=Math.floor((Date.now()-created)/86400000);
+    document.getElementById('profileDays').textContent=days||1;
+  }
+});
+
+async function handleProfileImageChange(e){
+  const file=e.target.files[0];
+  if(!file)return;
+  if(file.size>5*1024*1024){toast('Image too large (max 5MB)','error');return}
+  const blob=file;
+  const url=await updateProfileImage(blob);
+  if(url){
+    document.getElementById('profileImage').src=url;
+    document.getElementById('profileImage').style.display='block';
+    document.getElementById('profilePlaceholder').style.display='none';
+    // Update session
+    const session=getSession();
+    if(session){session.profileImage=url;setSession(session)}
+  }
+}
+
+async function saveBio(){
+  const bio=document.getElementById('bioField').value.trim();
+  if(!bio){toast('Enter a bio','error');return}
+  const ok=await updateProfile({bio});
+  if(ok){
+    document.getElementById('profileBio').textContent=bio;
+    document.getElementById('bioInput').style.display='none';
+    document.querySelector('.settings-item').style.display='flex';
+  }
+}
+</script>
+</body>
+</html>

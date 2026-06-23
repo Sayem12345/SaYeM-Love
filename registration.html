@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="theme-color" content="#0F172A">
+<link rel="manifest" href="manifest.json">
+<title>SEVEN - Register</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/mobile.css">
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+</head>
+<body>
+<div class="auth-page">
+  <div class="auth-brand">SEVEN</div>
+  <div class="auth-subtitle">Create your account</div>
+  <div class="auth-card">
+    <div class="auth-progress" id="progressDots">
+      <div class="auth-progress-dot active"></div>
+      <div class="auth-progress-dot"></div>
+      <div class="auth-progress-dot"></div>
+    </div>
+
+    <!-- STEP 1: Name -->
+    <div class="auth-step active" id="step1">
+      <div class="auth-step-title">What's your name?</div>
+      <div class="input-group">
+        <label class="input-label">Full Name</label>
+        <input type="text" class="input-field" id="regName" placeholder="Enter your name" autocomplete="name">
+      </div>
+      <button class="btn btn-primary btn-full btn-lg" onclick="nextStep(2)">Continue</button>
+    </div>
+
+    <!-- STEP 2: Password -->
+    <div class="auth-step" id="step2">
+      <div class="auth-step-title">Set a password</div>
+      <div class="input-group">
+        <label class="input-label">Password</label>
+        <input type="password" class="input-field" id="regPassword" placeholder="Create a password" autocomplete="new-password">
+      </div>
+      <div class="input-group">
+        <label class="input-label">Confirm Password</label>
+        <input type="password" class="input-field" id="regConfirm" placeholder="Confirm password" autocomplete="new-password">
+      </div>
+      <button class="btn btn-primary btn-full btn-lg" onclick="nextStep(3)">Continue</button>
+      <button class="btn btn-ghost btn-full" onclick="prevStep(1)" style="margin-top:8px">Back</button>
+    </div>
+
+    <!-- STEP 3: Profile Picture -->
+    <div class="auth-step" id="step3">
+      <div class="auth-step-title">Profile picture</div>
+      <div class="image-upload-wrap" id="profileUploadWrap" onclick="document.getElementById('profileUpload').click()">
+        <img id="profilePreview" src="" alt="" style="display:none">
+        <div class="image-upload-placeholder" id="uploadPlaceholder">
+          <span class="icon">📷</span>
+          Upload Photo
+        </div>
+      </div>
+      <input type="file" id="profileUpload" accept="image/*" style="display:none" onchange="previewProfileImage(event)">
+      <div style="text-align:center;font-size:13px;color:#64748B;margin-bottom:20px">Optional: tap to add a profile photo</div>
+      <button class="btn btn-success btn-full btn-lg" id="registerBtn" onclick="handleRegister()">
+        <span class="spinner spinner-sm" id="regSpinner" style="display:none"></span>
+        <span id="regBtnText">Create Account</span>
+      </button>
+      <button class="btn btn-ghost btn-full" onclick="prevStep(2)" style="margin-top:8px">Back</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/firebase.js"></script>
+<script src="js/app.js"></script>
+<script src="js/auth.js"></script>
+<script>
+let regImageBlob=null;
+let currentStep=1;
+
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('regName').addEventListener('keydown',e=>{if(e.key==='Enter')nextStep(2)});
+  document.getElementById('regPassword').addEventListener('keydown',e=>{if(e.key==='Enter')nextStep(3)});
+  document.getElementById('regConfirm').addEventListener('keydown',e=>{if(e.key==='Enter')nextStep(3)});
+});
+
+function nextStep(n){
+  if(n===2){
+    const name=document.getElementById('regName').value.trim();
+    if(!name){toast('Enter your name','error');document.getElementById('regName').focus();return}
+  }
+  if(n===3){
+    const pwd=document.getElementById('regPassword').value;
+    const confirm=document.getElementById('regConfirm').value;
+    if(!pwd||pwd.length<6){toast('Password must be at least 6 characters','error');return}
+    if(pwd!==confirm){toast('Passwords do not match','error');return}
+  }
+  document.querySelectorAll('.auth-step').forEach(s=>s.classList.remove('active'));
+  document.getElementById('step'+n).classList.add('active');
+  document.querySelectorAll('.auth-progress-dot').forEach((d,i)=>{
+    d.classList.toggle('active',i+1===n);
+    d.classList.toggle('done',i+1<n);
+  });
+  currentStep=n;
+}
+
+function prevStep(n){
+  document.querySelectorAll('.auth-step').forEach(s=>s.classList.remove('active'));
+  document.getElementById('step'+n).classList.add('active');
+  document.querySelectorAll('.auth-progress-dot').forEach((d,i)=>{
+    d.classList.toggle('active',i+1===n);
+    d.classList.toggle('done',i+1<n);
+  });
+  currentStep=n;
+}
+
+function previewProfileImage(e){
+  const file=e.target.files[0];
+  if(!file)return;
+  if(file.size>5*1024*1024){toast('Image too large (max 5MB)','error');return}
+  regImageBlob=file;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    document.getElementById('profilePreview').src=ev.target.result;
+    document.getElementById('profilePreview').style.display='block';
+    document.getElementById('uploadPlaceholder').style.display='none';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function handleRegister(){
+  const btn=document.getElementById('registerBtn');
+  const spinner=document.getElementById('regSpinner');
+  const btnText=document.getElementById('regBtnText');
+  const name=document.getElementById('regName').value.trim();
+  const password=document.getElementById('regPassword').value;
+  if(!name){toast('Enter your name','error');nextStep(1);return}
+  if(!password){toast('Set a password','error');nextStep(2);return}
+  btn.disabled=true;spinner.style.display='inline-block';btnText.textContent='Creating account...';
+  try{
+    const userId=await registerUser(name,password,regImageBlob);
+    if(userId){goTo('home.html')}
+  }catch(e){
+    btn.disabled=false;spinner.style.display='none';btnText.textContent='Create Account';
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="theme-color" content="#0F172A">
+<link rel="manifest" href="manifest.json">
+<title>SEVEN - Settings</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/mobile.css">
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+</head>
+<body>
+<div class="topbar">
+  <button class="topbar-btn" onclick="goTo('profile.html')">←</button>
+  <div class="topbar-center">
+    <div class="topbar-title">Settings</div>
+  </div>
+  <div style="width:40px"></div>
+</div>
+
+<div style="flex:1;overflow-y:auto">
+  <div class="settings-section-title">Preferences</div>
+  <div class="settings-list">
+    <div class="settings-item" onclick="toggleTheme()">
+      <div class="settings-item-left">
+        <div class="settings-item-icon cyan">🌙</div>
+        <div>
+          <div class="settings-item-label">Dark Mode</div>
+          <div class="settings-item-desc">Toggle dark/light theme</div>
+        </div>
+      </div>
+      <div class="toggle active" id="themeToggle"><div class="toggle-knob"></div></div>
+    </div>
+
+    <div class="settings-item" onclick="toggleNotifications()">
+      <div class="settings-item-left">
+        <div class="settings-item-icon blue">🔔</div>
+        <div>
+          <div class="settings-item-label">Push Notifications</div>
+          <div class="settings-item-desc">Receive message alerts</div>
+        </div>
+      </div>
+      <div class="toggle active" id="notifToggle"><div class="toggle-knob"></div></div>
+    </div>
+
+    <div class="settings-item" onclick="toggleOnlineStatus()">
+      <div class="settings-item-left">
+        <div class="settings-item-icon green">🟢</div>
+        <div>
+          <div class="settings-item-label">Show Online Status</div>
+          <div class="settings-item-desc">Let others see when you're online</div>
+        </div>
+      </div>
+      <div class="toggle active" id="onlineToggle"><div class="toggle-knob"></div></div>
+    </div>
+
+    <div class="settings-item" onclick="toggleLastSeen()">
+      <div class="settings-item-left">
+        <div class="settings-item-icon green">🕐</div>
+        <div>
+          <div class="settings-item-label">Show Last Seen</div>
+          <div class="settings-item-desc">Let others see your last active time</div>
+        </div>
+      </div>
+      <div class="toggle active" id="lastSeenToggle"><div class="toggle-knob"></div></div>
+    </div>
+  </div>
+
+  <div class="settings-section-title">Account</div>
+  <div class="settings-list">
+    <div class="settings-item" onclick="goTo('profile.html')">
+      <div class="settings-item-left">
+        <div class="settings-item-icon blue">👤</div>
+        <div>
+          <div class="settings-item-label">Edit Profile</div>
+          <div class="settings-item-desc">Change name, photo, bio</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-item" onclick="showPasswordModal()">
+      <div class="settings-item-left">
+        <div class="settings-item-icon cyan">🔑</div>
+        <div>
+          <div class="settings-item-label">Change Password</div>
+          <div class="settings-item-desc">Update your account password</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-item" onclick="confirmLogout()">
+      <div class="settings-item-left">
+        <div class="settings-item-icon red">🚪</div>
+        <div>
+          <div class="settings-item-label" style="color:#EF4444">Logout</div>
+          <div class="settings-item-desc">Sign out of your account</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="settings-section-title">About</div>
+  <div class="settings-list">
+    <div class="settings-item" style="cursor:default">
+      <div class="settings-item-left">
+        <div class="settings-item-icon blue">ℹ️</div>
+        <div>
+          <div class="settings-item-label">Version</div>
+          <div class="settings-item-desc">1.0.0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PASSWORD MODAL -->
+<div class="modal-overlay" id="passwordModal">
+  <div class="modal">
+    <div class="modal-title">Change Password</div>
+    <div class="input-group">
+      <label class="input-label">Current Password</label>
+      <input type="password" class="input-field" id="currentPwd" placeholder="Enter current password">
+    </div>
+    <div class="input-group">
+      <label class="input-label">New Password</label>
+      <input type="password" class="input-field" id="newPwd" placeholder="Enter new password">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Confirm New Password</label>
+      <input type="password" class="input-field" id="confirmPwd" placeholder="Confirm new password">
+    </div>
+    <button class="btn btn-primary btn-full" onclick="changePassword()">Save</button>
+    <button class="btn btn-ghost btn-full" onclick="closeModal('passwordModal')" style="margin-top:8px">Cancel</button>
+  </div>
+</div>
+
+<script src="js/firebase.js"></script>
+<script src="js/app.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/chat.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+  if(!isLoggedIn()){goTo('login.html');return}
+  // Load saved settings
+  const theme=localStorage.getItem('theme');
+  const notif=localStorage.getItem('notifications');
+  const online=localStorage.getItem('showOnline');
+  const lastSeen=localStorage.getItem('showLastSeen');
+  if(theme==='light')toggleTheme();
+  if(notif==='off')toggleNotifications();
+  if(online==='off')toggleOnlineStatus();
+  if(lastSeen==='off')toggleLastSeen();
+});
+
+function toggleTheme(){
+  const toggle=document.getElementById('themeToggle');
+  toggle.classList.toggle('active');
+  document.body.classList.toggle('light-theme');
+  localStorage.setItem('theme',document.body.classList.contains('light-theme')?'light':'dark');
+}
+
+function toggleNotifications(){
+  const toggle=document.getElementById('notifToggle');
+  toggle.classList.toggle('active');
+  localStorage.setItem('notifications',toggle.classList.contains('active')?'on':'off');
+  if(!toggle.classList.contains('active')){
+    toast('Notifications disabled','');
+  }else{
+    initNotifications();
+  }
+}
+
+function toggleOnlineStatus(){
+  const toggle=document.getElementById('onlineToggle');
+  toggle.classList.toggle('active');
+  localStorage.setItem('showOnline',toggle.classList.contains('active')?'on':'off');
+  const uid=localStorage.getItem('uid');
+  if(uid){
+    REFS.users.child(uid).update({onlineStatus:toggle.classList.contains('active')});
+  }
+}
+
+function toggleLastSeen(){
+  const toggle=document.getElementById('lastSeenToggle');
+  toggle.classList.toggle('active');
+  localStorage.setItem('showLastSeen',toggle.classList.contains('active')?'on':'off');
+}
+
+function showPasswordModal(){
+  document.getElementById('passwordModal').classList.add('active');
+}
+
+function closeModal(id){
+  document.getElementById(id).classList.remove('active');
+}
+
+async function changePassword(){
+  const current=document.getElementById('currentPwd').value;
+  const newPwd=document.getElementById('newPwd').value;
+  const confirm=document.getElementById('confirmPwd').value;
+  if(!current||!newPwd||!confirm){toast('Fill all fields','error');return}
+  if(newPwd.length<6){toast('Password must be 6+ characters','error');return}
+  if(newPwd!==confirm){toast('Passwords do not match','error');return}
+
+  const uid=localStorage.getItem('uid');
+  const snap=await REFS.users.child(uid).once('value');
+  const user=snap.val();
+  const hash=await sha256(current);
+  if(hash!==user.passwordHash){toast('Current password is wrong','error');return}
+
+  const newHash=await sha256(newPwd);
+  await REFS.users.child(uid).update({passwordHash:newHash});
+  toast('Password changed','success');
+  closeModal('passwordModal');
+  document.getElementById('currentPwd').value='';
+  document.getElementById('newPwd').value='';
+  document.getElementById('confirmPwd').value='';
+}
+
+function confirmLogout(){
+  if(confirm('Logout from SEVEN?')){
+    logout();
+  }
+}
+</script>
+</body>
+</html>
