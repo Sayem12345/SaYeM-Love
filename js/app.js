@@ -45,10 +45,54 @@ function setSession(data){localStorage.setItem('session',JSON.stringify(data))}
 function clearSession(){localStorage.removeItem('session');localStorage.removeItem('uid')}
 function isLoggedIn(){return!!getSession()}
 
+// ===== SPA ROUTER =====
+const _scrollStates={};
+const _spaPages=['home.html','chat.html','profile.html','settings.html'];
 function goTo(page){
-  if(page.includes('?'))window.location.href=page;
-  else if(page.endsWith('.html'))window.location.href=page;
-  else window.location.href=page+'.html';
+  if(page.includes('login')||page.includes('registration')){window.location.href=page;return}
+  const pn=page.includes('?')?page.split('?')[0]:page.endsWith('.html')?page:page+'.html';
+  if(!_spaPages.includes(pn)){window.location.href=page;return}
+  if(pn!=='home.html')_inSubPage=true;
+  _saveScrollState();
+  history.pushState({page,dir:'forward'},'',page);
+  _loadPage(pn,page);
+}
+function _loadPage(pn,fullUrl){
+  _showLoading(true);
+  const url=fullUrl||pn;
+  fetch(pn).then(r=>r.text()).then(html=>{
+    const d=new DOMParser().parseFromString(html,'text/html');
+    const app=document.getElementById('app');
+    if(!app){window.location.href=url;return}
+    app.innerHTML=d.body.innerHTML;
+    _execScripts(app);
+    _initCurPage(pn);
+    setTimeout(()=>_showLoading(false),120);
+  }).catch(()=>{window.location.href=url});
+}
+function _execScripts(c){
+  c.querySelectorAll('script').forEach(old=>{
+    const s=document.createElement('script');
+    if(old.src){if(!document.querySelector(`script[src="${old.src}"]`)){s.src=old.src;s.async=false;document.head.appendChild(s)}}else{s.textContent=old.textContent;old.parentNode.replaceChild(s,old)}
+  });
+}
+function _saveScrollState(){
+  const p=window.location.pathname.split('/').pop()+window.location.search;
+  const el=document.querySelector('.msg-container')||document.querySelector('.chat-list')||document.querySelector('.tab-content.active')||document.querySelector('#profileTabContent')||document.querySelector('.settings-tab');
+  if(el)_scrollStates[p]=el.scrollTop;
+}
+function _restoreScrollState(){
+  setTimeout(()=>{
+    const p=window.location.pathname.split('/').pop()+window.location.search;
+    const el=document.querySelector('.msg-container')||document.querySelector('.chat-list')||document.querySelector('.tab-content.active')||document.querySelector('#profileTabContent')||document.querySelector('.settings-tab');
+    if(el&&_scrollStates[p]!==undefined)el.scrollTop=_scrollStates[p];
+  },50);
+}
+function _initCurPage(pn){
+  if(pn==='home.html'&&typeof initHome==='function')initHome();
+  else if(pn==='chat.html'&&typeof initChat==='function')initChat();
+  else if(pn==='profile.html'&&typeof initProfile==='function')initProfile();
+  else if(pn==='settings.html'&&typeof initSettings==='function')initSettings();
 }
 
 function escapeHtml(str){
@@ -163,29 +207,87 @@ SOUNDS.notification=()=>{
 };
 document.addEventListener('DOMContentLoaded',initSounds);
 
-// ===== ANDROID BACK BUTTON =====
-let backTimer=null;
+// ===== ANDROID BACK BUTTON + EXIT MODAL =====
+let _inSubPage=false;
+
+function showExitModal(){
+  const m=document.getElementById('exitModal');
+  if(m){m.classList.add('active');return}
+  const ov=document.createElement('div');ov.id='exitModal';ov.className='modal-overlay exit-modal-overlay';
+  ov.innerHTML='<div class="exit-modal"><div class="exit-icon"><i class="fa-solid fa-right-from-bracket"></i></div><div class="exit-title">Leave SEVEN?</div><div class="exit-desc">Are you sure you want to close the app?</div><div class="exit-actions"><button class="btn btn-ghost btn-lg btn-full" onclick="hideExitModal()">Cancel</button><button class="btn btn-danger btn-lg btn-full" onclick="exitApp()"><i class="fa-solid fa-door-open"></i> Exit</button></div></div>';
+  ov.onclick=e=>{if(e.target===ov)hideExitModal()};
+  document.body.appendChild(ov);
+  requestAnimationFrame(()=>ov.classList.add('active'));
+}
+function hideExitModal(){
+  const m=document.getElementById('exitModal');
+  if(m)m.classList.remove('active');
+}
+function exitApp(){
+  try{if(navigator.app&&navigator.app.exitApp)navigator.app.exitApp()}catch(e){}
+  window.close();
+}
+
 function initAndroidBack(){
-  if(!history.state||!history.state._seven){
-    history.pushState({_seven:true},'');
+  if(!history.state||!history.state._seven&&!history.state.page){
+    history.replaceState({_seven:true,page:'home.html'},'');
   }
   window.addEventListener('popstate',e=>{
-    const page=window.location.pathname.split('/').pop();
-    if(!page||page==='home.html'||page==='index.html'||page===''){
-      if(backTimer){
-        clearTimeout(backTimer);backTimer=null;
-        try{if(navigator.app&&navigator.app.exitApp)navigator.app.exitApp()}catch(ex){}
+    const state=e.state;
+    if(_inSubPage){
+      _inSubPage=false;
+      if(state&&state.page){
+        _loadPage(state.page.includes('?')?state.page.split('?')[0]:state.page,state.page);
         return;
       }
-      toast('Press back again to exit','');
-      backTimer=setTimeout(()=>{backTimer=null},2000);
-      history.pushState({_seven:true},'');
+      _loadPage('home.html','home.html');
+      return;
+    }
+    const page=window.location.pathname.split('/').pop();
+    if(!page||page==='home.html'||page==='index.html'||page===''){
+      showExitModal();
+      history.pushState({_seven:true,page:'home.html'},'');
     }else{
-      window.location.replace('home.html');
+      goTo('home.html');
     }
   });
 }
-document.addEventListener('DOMContentLoaded',initAndroidBack);
+
+// ===== RIPPLE EFFECT =====
+function initRipple(){
+  document.addEventListener('click',e=>{
+    const btn=e.target.closest('.btn,.topbar-btn,.chat-action-btn,.chat-send,.bottom-tab,.fab,.settings-row,.chat-item,.user-row,.forward-user,.search-filter,.profile-field-edit,.reply-bar-cancel');
+    if(!btn)return;
+    const r=document.createElement('span');
+    r.className='ripple';
+    const rect=btn.getBoundingClientRect();
+    const size=Math.max(rect.width,rect.height);
+    r.style.width=r.style.height=size+'px';
+    r.style.left=(e.clientX-rect.left-size/2)+'px';
+    r.style.top=(e.clientY-rect.top-size/2)+'px';
+    btn.appendChild(r);
+    r.addEventListener('animationend',()=>r.remove());
+  });
+}
+
+// ===== LOADING OVERLAY =====
+function _showLoading(show){
+  let ov=document.getElementById('pageLoader');
+  if(!ov&&show){
+    ov=document.createElement('div');ov.id='pageLoader';ov.className='page-loader';
+    ov.innerHTML='<div class="spinner"></div>';
+    document.body.appendChild(ov);
+    requestAnimationFrame(()=>ov.classList.add('show'));
+  }else if(ov&&!show){
+    ov.classList.remove('show');
+    setTimeout(()=>{if(ov&&ov.parentNode)ov.remove()},300);
+  }
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  initAndroidBack();
+  initRipple();
+});
 
 // ===== SERVICE WORKER =====
 if('serviceWorker'in navigator){

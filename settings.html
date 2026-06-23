@@ -68,7 +68,7 @@
 <script src="js/auth.js"></script>
 <script src="js/notifications.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded',()=>{
+function initSettings(){
   if(!isLoggedIn()){goTo('login.html');return}
   const t=localStorage.getItem('theme'),n=localStorage.getItem('notif'),s=localStorage.getItem('sound'),v=localStorage.getItem('vibrate');
   document.getElementById('sTheme').classList.toggle('active',t!=='light');
@@ -78,7 +78,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(t==='light')document.body.classList.add('light');
   updateGtStatus();
   updateNotifPermission();
-});
+}
+(function(){if(document.readyState!=='loading')initSettings();else document.addEventListener('DOMContentLoaded',initSettings)})();
 function toggleTheme(){const t=document.getElementById('sTheme');t.classList.toggle('active');document.body.classList.toggle('light');localStorage.setItem('theme',t.classList.contains('active')?'dark':'light')}
 function toggleNotif(){const t=document.getElementById('sNotif');t.classList.toggle('active');localStorage.setItem('notif',t.classList.contains('active')?'on':'off');if(t.classList.contains('active')){if(Notification.permission==='denied'){toast('Notifications blocked. Enable in browser settings','error');document.getElementById('sNotifStatus').innerHTML='<span style="color:var(--danger)">Blocked</span>'}else{initNotifications()}}else{cleanupNotifications()};updateNotifPermission()}
 function toggleSound(){const t=document.getElementById('sSound');t.classList.toggle('active');localStorage.setItem('sound',t.classList.contains('active')?'on':'off')}

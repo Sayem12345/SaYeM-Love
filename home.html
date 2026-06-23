@@ -83,9 +83,14 @@
       <!-- AVATAR -->
       <div style="text-align:center;margin-bottom:12px;padding-top:8px">
         <div style="position:relative;cursor:pointer;display:inline-block" onclick="document.getElementById('profileUpload').click()">
-          <img id="hPfpImg" src="" class="avatar avatar-xxl" alt="" style="display:none">
-          <div id="hPfpPl" class="avatar avatar-xxl avatar-placeholder" style="font-size:44px">?</div>
-          <div style="position:absolute;bottom:4px;right:4px;width:30px;height:30px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid var(--bg)"><i class="fa-solid fa-camera"></i></div>
+          <div class="premium-ring-wrap">
+            <div class="premium-ring">
+              <img id="hPfpImg" src="" class="avatar avatar-xxl" alt="" style="display:none">
+              <div id="hPfpPl" class="avatar avatar-xxl avatar-placeholder" style="font-size:44px">?</div>
+            </div>
+            <div class="premium-online-dot"></div>
+          </div>
+          <div style="position:absolute;bottom:0;right:0;width:30px;height:30px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid var(--bg);z-index:3"><i class="fa-solid fa-camera"></i></div>
         </div>
         <div id="hUploadProg" class="upload-progress upload-progress-avatar" style="display:none"><div class="upload-progress-bar" style="width:0%"></div></div>
       </div>
@@ -242,7 +247,7 @@ function escapeHtml(t){const d=document.createElement('div');d.textContent=t;ret
 let unsubChats=null,unsubActive=null,unsubUnread=null;
 let _allChats=[],_allArchived=[];
 
-document.addEventListener('DOMContentLoaded',()=>{
+function initHome(){
   if(!isLoggedIn()){goTo('login.html');return}
   initPresence();
   initNotifications();
@@ -252,7 +257,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   loadActiveUsers();
   loadUnread();
   if(localStorage.getItem('anim')==='off')document.body.classList.add('no-anim');
-});
+}
+(function(){if(document.readyState!=='loading')initHome();else document.addEventListener('DOMContentLoaded',initHome)})();
 
 function switchTab(id){
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));

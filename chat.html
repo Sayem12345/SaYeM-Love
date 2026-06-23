@@ -93,19 +93,19 @@
 function escapeHtml(t){const d=document.createElement('div');d.textContent=t;return d.innerHTML}
 let CId=null,PId=null,PD=null,reply=null,editing=null;
 
-document.addEventListener('DOMContentLoaded',()=>{
+function initChat(){
   if(!isLoggedIn()){goTo('login.html');return}
   initPresence();
   const p=new URLSearchParams(window.location.search);
   CId=p.get('id');PId=p.get('partner');
   if(!CId||!PId){toast('Invalid chat','error');goTo('home.html');return}
-  // Animations
   if(localStorage.getItem('anim')==='off')document.body.classList.add('no-anim');
   initScrollTracker();
   loadPartner();
   msgUnsub=listenMessages(CId,ms=>{renderMsgs(ms);markSeen(CId);if(!document.querySelector('.msg-wrap'))scrollToBottom()});
   listenTyping(CId,()=>{const i=document.getElementById('typingInd');i.style.display='flex';setTimeout(()=>i.style.display='none',3000)});
-});
+}
+(function(){if(document.readyState!=='loading')initChat();else document.addEventListener('DOMContentLoaded',initChat)})();
 
 async function loadPartner(){
   const u=await getUserById(PId);
@@ -385,6 +385,47 @@ function showInfo(){
 }
 function closeModal(id){document.getElementById(id).classList.remove('active')}
 function delChat(){if(!confirm('Delete this conversation?'))return;closeModal('infoModal');REFS.messages.child(CId).remove().then(()=>{REFS.chats.child(CId).update({lastMessage:'',lastTime:0});goTo('home.html')})}
+
+// ===== DRAG-DROP IMAGE UPLOAD =====
+(function(){
+  if(window._dragInit)return;
+  window._dragInit=true;
+  let dragCount=0;
+  document.addEventListener('dragenter',e=>{
+    const types=e.dataTransfer.types||[];
+    let hasFiles=false;
+    for(let i=0;i<types.length;i++){if(types[i]==='Files'){hasFiles=true;break}}
+    if(!hasFiles)return;
+    dragCount++;
+    document.body.classList.add('drop-zone-active');
+  });
+  document.addEventListener('dragleave',e=>{
+    dragCount--;
+    if(dragCount<=0){dragCount=0;document.body.classList.remove('drop-zone-active')}
+  });
+  document.addEventListener('dragover',e=>e.preventDefault());
+  document.addEventListener('drop',e=>{
+    e.preventDefault();
+    document.body.classList.remove('drop-zone-active');
+    dragCount=0;
+    const file=e.dataTransfer.files[0];
+    if(file&&file.type.startsWith('image/')){
+      if(file.size>5*1024*1024){toast('Image too large (max 5MB)','error');return}
+      const wrap=document.querySelector('.chat-input-wrap');
+      if(!wrap)return;
+      const prog=document.createElement('div');prog.className='upload-progress';prog.style.cssText='margin:4px 10px 2px';
+      const bar=document.createElement('div');bar.className='upload-progress-bar';bar.style.width='0%';
+      prog.appendChild(bar);wrap.parentNode.insertBefore(prog,wrap.nextSibling);
+      uploadChatImage(CId,file,(loaded,total)=>{
+        const pct=Math.min(100,Math.round(loaded/total*100));
+        bar.style.width=pct+'%';
+      }).then(url=>{
+        if(url){bar.classList.add('done');setTimeout(()=>prog.remove(),600);sendMessage(CId,'','image',url,reply);reply=null;cancelReply()}
+        else{prog.remove();toast('Upload failed','error')}
+      });
+    }else if(file){toast('Only images are supported','error')}
+  });
+})();
 </script>
 </body>
 </html>

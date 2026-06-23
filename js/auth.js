@@ -138,6 +138,7 @@ function initPresence(){
 // ===== AUTH INIT =====
 document.addEventListener('DOMContentLoaded',async()=>{
   const loggedIn=await autoLogin();
+  window._autoLoginDone=true;
   if(loggedIn){
     initPresence();
     const page=window.location.pathname.split('/').pop();

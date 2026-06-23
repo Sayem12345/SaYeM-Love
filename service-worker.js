@@ -1,4 +1,4 @@
-const C='seven-v5';
+const C='seven-v6';
 const F=['/','index.html','login.html','registration.html','home.html','chat.html','settings.html','profile.html','css/style.css','css/dark.css','css/mobile.css','js/firebase.js','js/app.js','js/auth.js','js/chat.js','js/search.js','js/notifications.js','js/profile.js','manifest.json'];
 
 self.addEventListener('install',e=>{
