@@ -14,73 +14,52 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 </head>
 <body>
-<!-- TOP BAR -->
 <div class="topbar">
   <button class="topbar-btn" onclick="goTo('home.html')">←</button>
-  <img id="chatPartnerAvatar" src="" class="topbar-avatar" alt="" style="display:none">
-  <div id="chatPartnerPlaceholder" class="avatar avatar-sm avatar-placeholder" style="display:none;width:36px;height:36px;font-size:16px">?</div>
+  <img id="chatAvatar" src="" class="topbar-btn" style="border-radius:50%;width:34px;height:34px;object-fit:cover;display:none" alt="">
+  <div id="chatAvatarPl" class="avatar avatar-sm avatar-placeholder" style="width:34px;height:34px;font-size:14px;display:none">?</div>
   <div class="topbar-center">
-    <div class="topbar-title" id="chatPartnerName">Loading...</div>
-    <div class="topbar-subtitle" id="chatPartnerStatus">...</div>
+    <div class="topbar-title" id="chatName">Loading...</div>
+    <div class="topbar-sub" id="chatStatus">...</div>
   </div>
-  <button class="topbar-btn" onclick="showChatInfo()" title="Info">ℹ️</button>
+  <button class="topbar-btn" onclick="showInfo()">ℹ️</button>
 </div>
 
-<!-- REPLY BAR -->
 <div class="reply-bar" id="replyBar">
-  <div class="reply-bar-info">
-    <div class="reply-bar-name" id="replyName">Replying</div>
-    <div class="reply-bar-text" id="replyText"></div>
-  </div>
+  <div class="reply-bar-info"><div class="reply-bar-name">Replying</div><div class="reply-bar-text" id="replyText"></div></div>
   <button class="reply-bar-cancel" onclick="cancelReply()">✕</button>
 </div>
 
-<!-- MESSAGES -->
-<div class="messages-container" id="messagesContainer">
-  <div id="messagesList"></div>
-  <div id="typingIndicator" class="typing-indicator" style="display:none">
-    <span></span><span></span><span></span>
-    <span style="font-size:12px;color:#64748B;margin-left:6px">typing...</span>
+<div class="msg-container" id="msgContainer">
+  <div id="msgList"></div>
+  <div id="typingIndicator" class="typing-dots" style="display:none"><span></span><span></span><span></span><span style="font-size:11px;color:var(--text3);margin-left:6px">typing...</span></div>
+</div>
+
+<div class="chat-input-wrap">
+  <button class="chat-action-btn" onclick="toggleEmoji()">😊</button>
+  <div class="chat-input-field">
+    <textarea class="chat-input-text" id="chatInput" placeholder="Message..." rows="1" oninput="autoResize(this);setTyping(chatId,this.value.length>0)" onkeydown="handleKey(event)"></textarea>
+    <div class="chat-input-actions"><button class="chat-action-btn" onclick="document.getElementById('imgInput').click()">📷</button></div>
   </div>
+  <button class="chat-send" id="sendBtn" onclick="sendMsg()" disabled>➤</button>
 </div>
 
-<!-- INPUT -->
-<div class="chat-input-bar">
-  <button class="chat-action-btn" onclick="toggleEmojiPicker()" title="Emoji">😊</button>
-  <div class="chat-input-wrap">
-    <textarea class="chat-input" id="chatInput" placeholder="Message..." rows="1" oninput="autoResize(this);setTyping(currentChatId,this.value.length>0)" onkeydown="handleInputKey(event)"></textarea>
-    <div class="chat-actions">
-      <button class="chat-action-btn" onclick="document.getElementById('imageInput').click()" title="Image">📷</button>
-    </div>
-  </div>
-  <button class="chat-send-btn" id="sendBtn" onclick="handleSend()" disabled>➤</button>
+<div class="emoji-picker" id="emojiPicker"><div class="emoji-grid" id="emojiGrid"></div></div>
+<input type="file" id="imgInput" accept="image/*" style="display:none" onchange="handleImage(event)">
+
+<div class="img-viewer" id="imgViewer" onclick="closeViewer()">
+  <button class="img-viewer-close" onclick="event.stopPropagation();closeViewer()">✕</button>
+  <img id="viewerImg" src="" alt="">
 </div>
 
-<!-- EMOJI PICKER -->
-<div id="emojiPicker" style="display:none;position:fixed;bottom:70px;left:12px;right:12px;max-height:280px;overflow-y:auto;background:#1E293B;border-radius:12px;border:1px solid rgba(255,255,255,0.08);padding:10px;z-index:100;box-shadow:0 -4px 20px rgba(0,0,0,0.3)">
-  <div style="display:flex;flex-wrap:wrap;gap:4px" id="emojiGrid"></div>
-</div>
-
-<!-- IMAGE INPUT -->
-<input type="file" id="imageInput" accept="image/*" style="display:none" onchange="handleImageSelect(event)">
-
-<!-- IMAGE VIEWER -->
-<div class="image-viewer" id="imageViewer" onclick="closeImageViewer()">
-  <button class="image-viewer-close" onclick="event.stopPropagation();closeImageViewer()">✕</button>
-  <img id="viewerImage" src="" alt="">
-</div>
-
-<!-- CHAT INFO MODAL -->
-<div class="modal-overlay" id="chatInfoModal">
-  <div class="modal" style="position:relative;text-align:center">
-    <div id="chatInfoAvatarWrap" style="margin-bottom:12px">
-      <img id="chatInfoAvatar" src="" class="avatar avatar-xl" style="display:none;margin:0 auto">
-      <div id="chatInfoAvatarPlaceholder" class="avatar avatar-xl avatar-placeholder" style="margin:0 auto;font-size:36px">?</div>
-    </div>
-    <div class="modal-title" id="chatInfoName">User</div>
-    <div style="color:#64748B;font-size:14px;margin-bottom:16px" id="chatInfoStatus">Offline</div>
-    <button class="btn btn-danger btn-full" onclick="deleteAllMessages()">Delete Chat</button>
-    <button class="btn btn-ghost btn-full" onclick="closeModal('chatInfoModal')" style="margin-top:8px">Close</button>
+<div class="modal-overlay" id="infoModal">
+  <div class="modal" style="text-align:center">
+    <img id="infoImg" src="" class="avatar avatar-xl" style="display:none;margin:0 auto" alt="">
+    <div id="infoPl" class="avatar avatar-xl avatar-placeholder" style="margin:0 auto;font-size:32px">?</div>
+    <div class="modal-title" id="infoName" style="margin-top:10px">User</div>
+    <div style="color:var(--text3);font-size:14px;margin-bottom:16px" id="infoStatus">Offline</div>
+    <button class="btn btn-danger btn-full" onclick="deleteChat()">Delete Chat</button>
+    <button class="btn btn-ghost btn-full" onclick="closeModal('infoModal')" style="margin-top:8px">Close</button>
   </div>
 </div>
 
@@ -88,274 +67,106 @@
 <script src="js/app.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/chat.js"></script>
-
 <script>
-let currentChatId=null;
-let currentPartnerId=null;
-let currentPartnerData=null;
-let replyTo=null;
+let chatId=null,partnerId=null,partnerData=null,reply=null,msgUnsub=null;
 
 document.addEventListener('DOMContentLoaded',()=>{
   if(!isLoggedIn()){goTo('login.html');return}
   initPresence();
-
-  const params=new URLSearchParams(window.location.search);
-  currentChatId=params.get('id');
-  currentPartnerId=params.get('partner');
-
-  if(!currentChatId||!currentPartnerId){toast('Invalid chat','error');goTo('home.html');return}
-
-  // Load partner info
-  loadPartnerInfo();
-
-  // Listen to messages
-  listenMessages(currentChatId,msgs=>{
-    renderMessages(msgs);
-    markSeen(currentChatId);
-  });
-
-  // Listen typing
-  listenTyping(currentChatId,typerId=>{
-    const indicator=document.getElementById('typingIndicator');
-    indicator.style.display='flex';
-    setTimeout(()=>{indicator.style.display='none'},2000);
-  });
-
-  // Build emoji grid
-  const grid=document.getElementById('emojiGrid');
-  EMOJIS.forEach(e=>{
-    const btn=document.createElement('button');
-    btn.textContent=e;
-    btn.style.cssText='width:40px;height:40px;border-radius:8px;border:none;background:transparent;font-size:22px;cursor:pointer;transition:background 0.2s';
-    btn.onmouseenter=function(){this.style.background='#334155'};
-    btn.onmouseleave=function(){this.style.background='transparent'};
-    btn.onclick=()=>insertEmoji(e);
-    grid.appendChild(btn);
-  });
+  const p=new URLSearchParams(window.location.search);
+  chatId=p.get('id');partnerId=p.get('partner');
+  if(!chatId||!partnerId){toast('Invalid chat','error');goTo('home.html');return}
+  loadPartner();
+  msgUnsub=listenMessages(chatId,msgs=>{renderMsgs(msgs);markSeen(chatId)});
+  listenTyping(chatId,()=>{const i=document.getElementById('typingIndicator');i.style.display='flex';setTimeout(()=>i.style.display='none',2000)});
+  // Emoji grid
+  const g=document.getElementById('emojiGrid');
+  EMOJIS.forEach(e=>{const b=document.createElement('button');b.textContent=e;b.onclick=()=>insertEmoji(e);g.appendChild(b)});
 });
 
-async function loadPartnerInfo(){
-  const u=await getUserById(currentPartnerId);
-  if(!u){document.getElementById('chatPartnerName').textContent='Unknown';return}
-  currentPartnerData=u;
-  document.getElementById('chatPartnerName').textContent=u.name;
-
-  const img=document.getElementById('chatPartnerAvatar');
-  const placeholder=document.getElementById('chatPartnerPlaceholder');
-  if(u.profileImage){
-    img.src=u.profileImage;img.style.display='block';placeholder.style.display='none';
-  }else{
-    img.style.display='none';placeholder.style.display='flex';
-    placeholder.textContent=u.name.charAt(0).toUpperCase();
-  }
-
-  // Presence listener
-  REFS.presence.child(currentPartnerId).on('value',snap=>{
-    const status=document.getElementById('chatPartnerStatus');
-    const data=snap.val();
-    if(data&&data.online){status.textContent='Online';status.className='topbar-subtitle online'}
-    else{status.textContent=formatLastSeen(data?.lastSeen);status.className='topbar-subtitle'}
-  });
-
-  // User online status
-  REFS.users.child(currentPartnerId).child('onlineStatus').on('value',snap=>{
-    const status=document.getElementById('chatPartnerStatus');
-    if(snap.val()){status.textContent='Online';status.className='topbar-subtitle online'}
+async function loadPartner(){
+  const u=await getUserById(partnerId);
+  if(!u){document.getElementById('chatName').textContent='Unknown';return}
+  partnerData=u;
+  document.getElementById('chatName').textContent=u.name;
+  const img=document.getElementById('chatAvatar'),pl=document.getElementById('chatAvatarPl');
+  if(u.profileImage){img.src=u.profileImage;img.style.display='block';pl.style.display='none'}
+  else{img.style.display='none';pl.style.display='flex';pl.textContent=u.name[0]}
+  REFS.presence.child(partnerId).on('value',s=>{
+    const st=document.getElementById('chatStatus');const d=s.val();
+    if(d&&d.online){st.textContent='Online';st.className='topbar-sub online'}else{st.textContent='Offline';st.className='topbar-sub'}
   });
 }
 
-function renderMessages(msgs){
-  const container=document.getElementById('messagesList');
-  const myId=uid();
-  container.innerHTML='';
-  msgs.forEach(msg=>{
-    const isMine=msg.senderId===myId;
-    const div=document.createElement('div');
-    div.className='message '+(isMine?'sent':'received');
-    div.dataset.id=msg.id;
-
-    let content='';
-    if(msg.type==='image'&&msg.imageUrl){
-      content+=`<img src="${msg.imageUrl}" class="message-image" onclick="event.stopPropagation();openImageViewer('${msg.imageUrl}')" alt="Image">`;
-    }
-    if(msg.text){
-      content+=`<div class="message-text">${escapeHtml(msg.text)}</div>`;
-    }
-    if(msg.replyTo){
-      content=`<div style="font-size:11px;color:${isMine?'rgba(255,255,255,0.6)':'#3B82F6'};margin-bottom:4px;border-left:2px solid ${isMine?'rgba(255,255,255,0.4)':'#3B82F6'};padding-left:8px">${escapeHtml(msg.replyTo.text||'')}</div>`+content;
-    }
-
-    div.innerHTML=content+`
-      <div class="message-time">
-        ${formatTime(msg.timestamp)}
-        ${isMine?`<span class="message-status ${msg.seen?'seen':msg.delivered?'delivered':''}">${msg.seen?'✓✓':msg.delivered?'✓✓':'✓'}</span>`:''}
-      </div>
-    `;
-
-    // Long press for options
-    let longPressTimer;
-    div.addEventListener('mousedown',()=>{longPressTimer=setTimeout(()=>showMessageOptions(msg,div),500)});
-    div.addEventListener('mouseup',()=>clearTimeout(longPressTimer));
-    div.addEventListener('mouseleave',()=>clearTimeout(longPressTimer));
-    div.addEventListener('touchstart',()=>{longPressTimer=setTimeout(()=>showMessageOptions(msg,div),500)});
-    div.addEventListener('touchend',()=>clearTimeout(longPressTimer));
-
-    container.appendChild(div);
+function renderMsgs(msgs){
+  const c=document.getElementById('msgList');const my=uid();c.innerHTML='';
+  msgs.forEach(m=>{
+    const mine=m.senderId===my;const d=document.createElement('div');
+    d.className='msg '+(mine?'sent':'rcvd');d.dataset.id=m.id;
+    let html='';
+    if(m.replyTo)html+=`<div style="font-size:11px;color:${mine?'rgba(255,255,255,.5)':'var(--primary)'};margin-bottom:3px;border-left:2px solid ${mine?'rgba(255,255,255,.3)':'var(--primary)'};padding-left:7px">${escapeHtml(m.replyTo.text||'')}</div>`;
+    if(m.type==='image'&&m.imageUrl)html+=`<img src="${m.imageUrl}" class="msg-img" onclick="event.stopPropagation();openViewer('${m.imageUrl}')" alt="">`;
+    if(m.text)html+=`<div>${escapeHtml(m.text)}</div>`;
+    html+=`<div class="msg-time">${formatTime(m.timestamp)}${mine?`<span class="msg-status ${m.seen?'seen':''}">${m.seen?'✓✓':'✓'}</span>`:''}</div>`;
+    d.innerHTML=html;
+    // Long press
+    let t;d.addEventListener('mousedown',()=>{t=setTimeout(()=>showOptions(m,d),500)});d.addEventListener('mouseup',()=>clearTimeout(t));d.addEventListener('mouseleave',()=>clearTimeout(t));d.addEventListener('touchstart',()=>{t=setTimeout(()=>showOptions(m,d),500)});d.addEventListener('touchend',()=>clearTimeout(t));
+    c.appendChild(d);
   });
-
-  // Auto scroll
-  const scrollContainer=document.getElementById('messagesContainer');
-  scrollContainer.scrollTop=scrollContainer.scrollHeight;
+  document.getElementById('msgContainer').scrollTop=document.getElementById('msgContainer').scrollHeight;
 }
 
-function showMessageOptions(msg,el){
-  const myId=uid();
-  const isMine=msg.senderId===myId;
-  const menu=document.createElement('div');
-  menu.style.cssText=`
-    position:fixed;bottom:0;left:0;right:0;background:#1E293B;border-radius:16px 16px 0 0;
-    z-index:200;padding:16px;box-shadow:0 -8px 32px rgba(0,0,0,0.4);
-    animation:fadeIn 0.2s ease;border-top:1px solid rgba(255,255,255,0.08)
-  `;
-  const overlay=document.createElement('div');
-  overlay.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;z-index:199;background:rgba(0,0,0,0.3)';
-  overlay.onclick=()=>{menu.remove();overlay.remove()};
-
-  let btns='';
-  btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:14px 16px" onclick="closeMenu();replyToMsg('${escapeHtml(msg.text)}','${msg.id}')">↩️ Reply</button>`;
-  btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:14px 16px" onclick="closeMenu();copyMsg('${escapeHtml(msg.text)}')">📋 Copy</button>`;
-  if(isMine){
-    btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:14px 16px;color:#EF4444" onclick="closeMenu();deleteMsg('${currentChatId}','${msg.id}')">🗑️ Delete</button>`;
-  }
-  menu.innerHTML=btns;
-
-  document.body.appendChild(overlay);
-  document.body.appendChild(menu);
-
-  window.closeMenu=()=>{menu.remove();overlay.remove()};
+function showOptions(msg,el){
+  const menu=document.createElement('div');menu.style.cssText='position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-radius:14px 14px 0 0;z-index:200;padding:14px;box-shadow:0 -4px 24px rgba(0,0,0,.4);animation:fadeIn .2s ease;border-top:1px solid var(--glass-border)';
+  const ov=document.createElement('div');ov.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;z-index:199;background:rgba(0,0,0,.3)';ov.onclick=()=>{menu.remove();ov.remove()};
+  menu.innerHTML=`
+    <button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px" onclick="menuRemove();replyTo('${escapeHtml(msg.text)}','${msg.id}')">↩️ Reply</button>
+    <button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px" onclick="menuRemove();copy('${escapeHtml(msg.text)}')">📋 Copy</button>
+    ${msg.senderId===uid()?`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px;color:var(--danger)" onclick="menuRemove();delMsg('${msg.id}')">🗑️ Delete</button>`:''}
+  `;document.body.appendChild(ov);document.body.appendChild(menu);
+  window.menuRemove=()=>{menu.remove();ov.remove()};
 }
 
-function closeMenu(){
-  const m=document.querySelector('div[style*="position:fixed;bottom:0;left:0;right:0"]');
-  if(m)m.remove();
-  const o=document.querySelector('div[style*="position:fixed;top:0;left:0;right:0;bottom:0;z-index:199"]');
-  if(o)o.remove();
+function replyTo(text,id){reply={text,id};document.getElementById('replyBar').classList.add('show');document.getElementById('replyText').textContent=text;document.getElementById('chatInput').focus()}
+function cancelReply(){reply=null;document.getElementById('replyBar').classList.remove('show')}
+function copy(t){navigator.clipboard.writeText(t).then(()=>toast('Copied','success')).catch(()=>{})}
+function delMsg(id){deleteMessage(chatId,id)}
+
+async function sendMsg(){
+  const i=document.getElementById('chatInput');const t=i.value.trim();if(!t)return;
+  i.value='';autoResize(i);setTyping(chatId,false);document.getElementById('sendBtn').disabled=true;
+  await sendMessage(chatId,t,'text','',reply);reply=null;document.getElementById('replyBar').classList.remove('show');document.getElementById('sendBtn').disabled=false;
 }
 
-function replyToMsg(text,id){
-  replyTo={text,id};
-  const bar=document.getElementById('replyBar');
-  document.getElementById('replyName').textContent='Replying';
-  document.getElementById('replyText').textContent=text;
-  bar.classList.add('show');
-  document.getElementById('chatInput').focus();
+function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg()};document.getElementById('sendBtn').disabled=!e.target.value.trim()}
+function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,110)+'px'}
+function toggleEmoji(){document.getElementById('emojiPicker').classList.toggle('active')}
+function insertEmoji(e){const i=document.getElementById('chatInput');i.value+=e;i.focus();autoResize(i);document.getElementById('sendBtn').disabled=false}
+
+async function handleImage(ev){
+  const f=ev.target.files[0];if(!f||f.size>5*1024*1024){toast('Image too large','error');return}
+  const url=await uploadChatImage(chatId,f);
+  if(url){await sendMessage(chatId,'','image',url,reply);reply=null;document.getElementById('replyBar').classList.remove('show')}
+  ev.target.value='';
 }
 
-function cancelReply(){
-  replyTo=null;
-  document.getElementById('replyBar').classList.remove('show');
-}
+function openViewer(url){document.getElementById('viewerImg').src=url;document.getElementById('imgViewer').classList.add('active')}
+function closeViewer(){document.getElementById('imgViewer').classList.remove('active')}
 
-function copyMsg(text){
-  navigator.clipboard.writeText(text).then(()=>toast('Copied','success')).catch(()=>{});
-}
-
-function deleteMsg(chatId,msgId){
-  deleteMessage(chatId,msgId);
-}
-
-async function handleSend(){
-  const input=document.getElementById('chatInput');
-  const text=input.value.trim();
-  if(!text)return;
-  input.value='';
-  autoResize(input);
-  setTyping(currentChatId,false);
-  document.getElementById('sendBtn').disabled=true;
-  await sendMessage(currentChatId,text,'text','',replyTo);
-  replyTo=null;
-  document.getElementById('replyBar').classList.remove('show');
-  document.getElementById('sendBtn').disabled=false;
-}
-
-function handleInputKey(e){
-  if(e.key==='Enter'&&!e.shiftKey){
-    e.preventDefault();
-    handleSend();
-  }
-  const input=e.target;
-  document.getElementById('sendBtn').disabled=!input.value.trim();
-}
-
-function autoResize(el){
-  el.style.height='auto';
-  el.style.height=Math.min(el.scrollHeight,120)+'px';
-}
-
-function toggleEmojiPicker(){
-  const picker=document.getElementById('emojiPicker');
-  picker.style.display=picker.style.display==='none'?'block':'none';
-}
-
-function insertEmoji(emoji){
-  const input=document.getElementById('chatInput');
-  input.value+=emoji;
-  input.focus();
-  autoResize(input);
-  document.getElementById('sendBtn').disabled=false;
-}
-
-async function handleImageSelect(e){
-  const file=e.target.files[0];
-  if(!file)return;
-  if(file.size>5*1024*1024){toast('Image too large (max 5MB)','error');return}
-  const blob=file;
-  const url=await uploadChatImage(currentChatId,blob);
-  if(url){
-    await sendMessage(currentChatId,'','image',url,replyTo);
-    replyTo=null;
-    document.getElementById('replyBar').classList.remove('show');
-  }
-  e.target.value='';
-}
-
-function openImageViewer(url){
-  document.getElementById('viewerImage').src=url;
-  document.getElementById('imageViewer').classList.add('active');
-}
-
-function closeImageViewer(){
-  document.getElementById('imageViewer').classList.remove('active');
-}
-
-function showChatInfo(){
-  const modal=document.getElementById('chatInfoModal');
-  modal.classList.add('active');
-  const img=document.getElementById('chatInfoAvatar');
-  const placeholder=document.getElementById('chatInfoAvatarPlaceholder');
-  if(currentPartnerData){
-    document.getElementById('chatInfoName').textContent=currentPartnerData.name;
-    if(currentPartnerData.profileImage){
-      img.src=currentPartnerData.profileImage;img.style.display='block';placeholder.style.display='none';
-    }else{
-      img.style.display='none';placeholder.style.display='flex';
-      placeholder.textContent=currentPartnerData.name.charAt(0).toUpperCase();
-    }
-    document.getElementById('chatInfoStatus').textContent=currentPartnerData.onlineStatus?'Online':'Offline';
+function showInfo(){
+  document.getElementById('infoModal').classList.add('active');
+  const img=document.getElementById('infoImg'),pl=document.getElementById('infoPl');
+  if(partnerData){
+    document.getElementById('infoName').textContent=partnerData.name;
+    if(partnerData.profileImage){img.src=partnerData.profileImage;img.style.display='block';pl.style.display='none'}
+    else{img.style.display='none';pl.style.display='flex';pl.textContent=partnerData.name[0]}
+    document.getElementById('infoStatus').textContent=partnerData.onlineStatus?'Online':'Offline';
   }
 }
-
-function closeModal(id){
-  document.getElementById(id).classList.remove('active');
-}
-
-function deleteAllMessages(){
-  if(!confirm('Delete this conversation?'))return;
-  closeModal('chatInfoModal');
-  REFS.messages.child(currentChatId).remove().then(()=>{
-    REFS.chats.child(currentChatId).update({lastMessage:'',lastTime:0});
-    goTo('home.html');
-  });
+function closeModal(id){document.getElementById(id).classList.remove('active')}
+function deleteChat(){
+  if(!confirm('Delete this conversation?'))return;closeModal('infoModal');
+  REFS.messages.child(chatId).remove().then(()=>{REFS.chats.child(chatId).update({lastMessage:'',lastTime:0});goTo('home.html')});
 }
 </script>
 </body>

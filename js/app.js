@@ -106,9 +106,10 @@ function initSounds(){
     osc.start(ctx.currentTime);
     osc.stop(ctx.currentTime+duration);
   }
-  SOUNDS.send=()=>createTone(800,0.1,'sine',0.2);
-  SOUNDS.receive=()=>{createTone(600,0.08,'sine',0.15);setTimeout(()=>createTone(800,0.08,'sine',0.15),80)};
-  SOUNDS.notification=()=>{createTone(523,0.15,'sine',0.2);setTimeout(()=>createTone(659,0.15,'sine',0.2),150);setTimeout(()=>createTone(784,0.2,'sine',0.2),300)};
+  function shouldPlay(){return localStorage.getItem('sound')!=='off'}
+  SOUNDS.send=()=>{if(shouldPlay())createTone(800,0.1,'sine',0.2)};
+  SOUNDS.receive=()=>{if(shouldPlay()){createTone(600,0.08,'sine',0.15);setTimeout(()=>createTone(800,0.08,'sine',0.15),80)}};
+  SOUNDS.notification=()=>{if(shouldPlay()){createTone(523,0.15,'sine',0.2);setTimeout(()=>createTone(659,0.15,'sine',0.2),150);setTimeout(()=>createTone(784,0.2,'sine',0.2),300)}};
 }
 document.addEventListener('DOMContentLoaded',initSounds);
 

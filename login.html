@@ -8,7 +8,6 @@
 <title>SEVEN - Login</title>
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/mobile.css">
-<link rel="stylesheet" href="css/dark.css">
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
@@ -16,33 +15,21 @@
 <body>
 <div class="auth-page">
   <div class="auth-brand">SEVEN</div>
-  <div class="auth-subtitle">Welcome back</div>
+  <div class="auth-sub">Welcome back</div>
   <div class="auth-card">
-    <div class="auth-step-title">Login</div>
-
-    <div id="loginAvatar" style="text-align:center;margin-bottom:20px">
-      <img id="loginAvatarImg" src="" alt="" class="avatar avatar-xl" style="display:none;margin:0 auto">
-      <div id="loginAvatarPlaceholder" class="avatar avatar-xl avatar-placeholder" style="margin:0 auto;font-size:36px">?</div>
-      <div style="font-size:14px;color:#64748B;margin-top:8px" id="loginDisplayName">Enter password to login</div>
-    </div>
-
-    <div class="input-group">
-      <label class="input-label">Password</label>
-      <input type="password" class="input-field" id="loginPassword" placeholder="Enter your password" autocomplete="current-password">
-    </div>
-
-    <button class="btn btn-primary btn-full btn-lg" id="loginBtn" onclick="handleLogin()">
-      <span class="spinner spinner-sm" id="loginSpinner" style="display:none"></span>
-      <span id="loginBtnText">Login</span>
-    </button>
-
-    <div style="text-align:center;margin-top:16px">
-      <span style="color:#64748B;font-size:14px">Don't have an account?</span>
-      <a href="registration.html" style="font-weight:600">Register</a>
+    <div class="auth-step active">
+      <div class="auth-step-title">Login</div>
+      <div style="text-align:center;margin-bottom:16px">
+        <img id="loginImg" src="" class="avatar avatar-xl" style="display:none;margin:0 auto" alt="">
+        <div id="loginPl" class="avatar avatar-xl avatar-placeholder" style="margin:0 auto;font-size:32px">?</div>
+        <div style="font-size:14px;color:var(--text3);margin-top:8px" id="loginName">Enter your password</div>
+      </div>
+      <div class="input-group"><label class="input-label">Password</label><input type="password" class="input-field" id="loginPwd" placeholder="Password" autocomplete="current-password"></div>
+      <button class="btn btn-primary btn-full btn-lg" id="loginBtn" onclick="handleLogin()"><span class="spinner spinner-sm" id="loginSpin" style="display:none"></span><span id="loginTxt">Login</span></button>
+      <div style="text-align:center;margin-top:14px;font-size:14px;color:var(--text3)">No account? <a href="registration.html" style="font-weight:600">Register</a></div>
     </div>
   </div>
 </div>
-
 <script src="js/firebase.js"></script>
 <script src="js/app.js"></script>
 <script src="js/auth.js"></script>
@@ -50,33 +37,23 @@
 document.addEventListener('DOMContentLoaded',()=>{
   const uid=localStorage.getItem('uid');
   if(!uid){goTo('registration.html');return}
-  // Load user info to show avatar
-  REFS.users.child(uid).once('value').then(snap=>{
+  REFS.users.child(uid).once('value',snap=>{
     const u=snap.val();
-    if(u){
-      document.getElementById('loginDisplayName').textContent='Welcome, '+u.name;
-      if(u.profileImage){
-        document.getElementById('loginAvatarImg').src=u.profileImage;
-        document.getElementById('loginAvatarImg').style.display='block';
-        document.getElementById('loginAvatarPlaceholder').style.display='none';
-      }else{
-        document.getElementById('loginAvatarPlaceholder').textContent=u.name.charAt(0).toUpperCase();
-      }
-    }
+    if(!u)return;
+    document.getElementById('loginName').textContent='Hi, '+u.name;
+    if(u.profileImage){document.getElementById('loginImg').src=u.profileImage;document.getElementById('loginImg').style.display='block';document.getElementById('loginPl').style.display='none'}
+    else{document.getElementById('loginPl').textContent=u.name[0]}
   });
-  document.getElementById('loginPassword').addEventListener('keydown',e=>{if(e.key==='Enter')handleLogin()});
+  document.getElementById('loginPwd').addEventListener('keydown',e=>{if(e.key==='Enter')handleLogin()});
 });
-
 async function handleLogin(){
-  const btn=document.getElementById('loginBtn');
-  const spinner=document.getElementById('loginSpinner');
-  const btnText=document.getElementById('loginBtnText');
-  const password=document.getElementById('loginPassword').value;
-  if(!password){toast('Enter your password','error');return}
-  btn.disabled=true;spinner.style.display='inline-block';btnText.textContent='Logging in...';
-  const user=await loginUser(password);
-  if(user){goTo('home.html')}
-  else{btn.disabled=false;spinner.style.display='none';btnText.textContent='Login'}
+  const pwd=document.getElementById('loginPwd').value;
+  if(!pwd){toast('Enter password','error');return}
+  const btn=document.getElementById('loginBtn');const spin=document.getElementById('loginSpin');const txt=document.getElementById('loginTxt');
+  btn.disabled=true;spin.style.display='inline-block';txt.textContent='Logging in...';
+  const u=await loginUser(pwd);
+  if(u){goTo('home.html')}
+  else{btn.disabled=false;spin.style.display='none';txt.textContent='Login'}
 }
 </script>
 </body>

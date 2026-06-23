@@ -4,51 +4,28 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <meta name="theme-color" content="#0F172A">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.json">
-<title>SEVEN - Chat App</title>
+<title>SEVEN</title>
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/mobile.css">
-<link rel="stylesheet" href="css/dark.css">
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js"></script>
-<style>
-  .splash{position:fixed;top:0;left:0;right:0;bottom:0;background:#0F172A;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity 0.5s ease}
-  .splash.hidden{opacity:0;pointer-events:none}
-  .splash-brand{font-size:64px;font-weight:900;background:linear-gradient(135deg,#3B82F6,#06B6D4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:pulse 2s infinite;font-family:'Segoe UI',system-ui,-apple-system,sans-serif}
-  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
-  .splash-loader{margin-top:24px;width:48px;height:48px;border:4px solid #334155;border-top-color:#3B82F6;border-radius:50%;animation:spin 0.8s linear infinite}
-  @keyframes spin{to{transform:rotate(360deg)}}
-  .splash-version{position:fixed;bottom:24px;color:#64748B;font-size:13px;font-family:'Segoe UI',system-ui,-apple-system,sans-serif}
-</style>
 </head>
 <body>
 <div class="splash" id="splash">
   <div class="splash-brand">SEVEN</div>
   <div class="splash-loader"></div>
-  <div class="splash-version">v1.0.0</div>
 </div>
-
 <script src="js/firebase.js"></script>
 <script src="js/app.js"></script>
 <script src="js/auth.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded',async()=>{
-  const session=getSession();
-  if(session&&session.uid){
-    goTo('home.html');
-  }else{
-    // Check if user has stored uid (returning user)
-    const storedUid=localStorage.getItem('uid');
-    if(storedUid){
-      goTo('login.html');
-    }else{
-      goTo('registration.html');
-    }
-  }
+document.addEventListener('DOMContentLoaded',()=>{
+  const s=getSession();
+  if(s&&s.uid){goTo('home.html')}
+  else if(localStorage.getItem('uid')){goTo('login.html')}
+  else{goTo('registration.html')}
 });
 </script>
 </body>

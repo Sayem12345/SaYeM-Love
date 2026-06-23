@@ -16,103 +16,58 @@
 <body>
 <div class="topbar">
   <button class="topbar-btn" onclick="goTo('home.html')">←</button>
-  <div class="topbar-center">
-    <div class="topbar-title">Profile</div>
-  </div>
+  <div class="topbar-center"><div class="topbar-title">Profile</div></div>
   <button class="topbar-btn" onclick="goTo('settings.html')">⚙️</button>
 </div>
-
 <div style="flex:1;overflow-y:auto">
-  <div class="profile-header">
-    <div style="position:relative;cursor:pointer" onclick="document.getElementById('profileUpload').click()">
-      <img id="profileImage" src="" class="avatar avatar-xxl" alt="" style="display:none">
-      <div id="profilePlaceholder" class="avatar avatar-xxl avatar-placeholder" style="font-size:48px">?</div>
-      <div style="position:absolute;bottom:4px;right:4px;width:32px;height:32px;border-radius:50%;background:#3B82F6;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;border:2px solid #0F172A">📷</div>
+  <div style="padding:24px 16px;text-align:center">
+    <div style="position:relative;cursor:pointer;display:inline-block" onclick="document.getElementById('pfpUpload').click()">
+      <img id="pfpImg" src="" class="avatar avatar-xxl" alt="" style="display:none">
+      <div id="pfpPl" class="avatar avatar-xxl avatar-placeholder" style="font-size:44px">?</div>
+      <div style="position:absolute;bottom:4px;right:4px;width:30px;height:30px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid var(--bg)">📷</div>
     </div>
-    <div class="profile-name" id="profileName">User</div>
-    <div class="profile-username" id="profileUsername">@user</div>
-    <div class="profile-bio" id="profileBio">No bio yet</div>
+    <div style="font-size:22px;font-weight:800;margin-top:10px" id="pfpName">User</div>
+    <div style="font-size:13px;color:var(--text3);margin-top:3px" id="pfpUser">@user</div>
+    <div style="font-size:14px;color:var(--text2);margin-top:8px;line-height:1.5" id="pfpBio">No bio yet</div>
   </div>
-
-  <div class="profile-stats" style="border-top:1px solid rgba(255,255,255,0.08);border-bottom:1px solid rgba(255,255,255,0.08);margin:0 16px;padding:16px 0">
-    <div class="profile-stat">
-      <div class="profile-stat-num" id="profileFriends">0</div>
-      <div class="profile-stat-label">Friends</div>
-    </div>
-    <div class="profile-stat">
-      <div class="profile-stat-num" id="profileChats">0</div>
-      <div class="profile-stat-label">Chats</div>
-    </div>
-    <div class="profile-stat">
-      <div class="profile-stat-num" id="profileDays">0</div>
-      <div class="profile-stat-label">Days</div>
-    </div>
+  <div style="display:flex;gap:28px;padding:14px 0;justify-content:center;border-top:1px solid var(--glass-border);border-bottom:1px solid var(--glass-border);margin:0 16px">
+    <div style="text-align:center"><div style="font-size:19px;font-weight:800;color:var(--primary)" id="pfpChats">0</div><div style="font-size:12px;color:var(--text3)">Chats</div></div>
+    <div style="text-align:center"><div style="font-size:19px;font-weight:800;color:var(--primary)" id="pfpDays">0</div><div style="font-size:12px;color:var(--text3)">Days</div></div>
   </div>
-
-  <div class="settings-list" style="padding-top:8px">
-    <div class="settings-item" onclick="document.getElementById('bioInput').style.display='block';this.style.display='none'">
-      <div class="settings-item-left">
-        <div class="settings-item-icon blue">✏️</div>
-        <div>
-          <div class="settings-item-label">Edit Bio</div>
-          <div class="settings-item-desc">Add a short description</div>
-        </div>
-      </div>
-    </div>
-    <div id="bioInput" style="display:none;padding:12px 16px">
-      <div class="input-group" style="margin:0">
-        <input type="text" class="input-field" id="bioField" placeholder="Write your bio..." maxlength="100">
-      </div>
-      <button class="btn btn-sm btn-primary" onclick="saveBio()">Save</button>
+  <div style="padding:12px 16px">
+    <button class="btn btn-ghost btn-full" onclick="document.getElementById('bioEdit').style.display='block';this.style.display='none'">✏️ Edit Bio</button>
+    <div id="bioEdit" style="display:none;margin-top:8px">
+      <div class="input-group"><input type="text" class="input-field" id="bioInput" placeholder="Write your bio..." maxlength="100"></div>
+      <button class="btn btn-sm btn-primary btn-full" onclick="saveBio()">Save</button>
     </div>
   </div>
 </div>
-
-<input type="file" id="profileUpload" accept="image/*" style="display:none" onchange="handleProfileImageChange(event)">
-
+<input type="file" id="pfpUpload" accept="image/*" style="display:none" onchange="changePfp(event)">
 <script src="js/firebase.js"></script>
 <script src="js/app.js"></script>
 <script src="js/auth.js"></script>
-<script src="js/chat.js"></script>
 <script src="js/profile.js"></script>
-
 <script>
-document.addEventListener('DOMContentLoaded',async()=>{
+document.addEventListener('DOMContentLoaded',()=>{
   if(!isLoggedIn()){goTo('login.html');return}
-  const user=await loadMyProfile();
-  if(user){
-    // Calculate days since created
-    const created=user.createdAt||Date.now();
-    const days=Math.floor((Date.now()-created)/86400000);
-    document.getElementById('profileDays').textContent=days||1;
-  }
+  const uid=localStorage.getItem('uid');
+  REFS.users.child(uid).once('value',snap=>{
+    const u=snap.val();if(!u)return;
+    const img=document.getElementById('pfpImg'),pl=document.getElementById('pfpPl');
+    if(u.profileImage){img.src=u.profileImage;img.style.display='block';pl.style.display='none'}else{img.style.display='none';pl.style.display='flex';pl.textContent=u.name[0]}
+    document.getElementById('pfpName').textContent=u.name;document.getElementById('pfpUser').textContent='@'+(u.userId||'').slice(-6);
+    document.getElementById('pfpBio').textContent=u.bio||'No bio yet';
+    document.getElementById('pfpDays').textContent=Math.floor((Date.now()-(u.createdAt||Date.now()))/86400000)||1;
+    REFS.chats.once('value',s=>{let c=0;s.forEach(ch=>{if(ch.val().participants&&ch.val().participants[uid])c++});document.getElementById('pfpChats').textContent=c-1||0});
+  });
 });
-
-async function handleProfileImageChange(e){
-  const file=e.target.files[0];
-  if(!file)return;
-  if(file.size>5*1024*1024){toast('Image too large (max 5MB)','error');return}
-  const blob=file;
-  const url=await updateProfileImage(blob);
-  if(url){
-    document.getElementById('profileImage').src=url;
-    document.getElementById('profileImage').style.display='block';
-    document.getElementById('profilePlaceholder').style.display='none';
-    // Update session
-    const session=getSession();
-    if(session){session.profileImage=url;setSession(session)}
-  }
-}
-
 async function saveBio(){
-  const bio=document.getElementById('bioField').value.trim();
-  if(!bio){toast('Enter a bio','error');return}
-  const ok=await updateProfile({bio});
-  if(ok){
-    document.getElementById('profileBio').textContent=bio;
-    document.getElementById('bioInput').style.display='none';
-    document.querySelector('.settings-item').style.display='flex';
-  }
+  const b=document.getElementById('bioInput').value.trim();if(!b){toast('Enter a bio','error');return}
+  await updateProfile({bio});document.getElementById('pfpBio').textContent=b;document.getElementById('bioEdit').style.display='none';document.querySelector('.btn-ghost').style.display='flex';toast('Bio saved','success');
+}
+async function changePfp(e){
+  const f=e.target.files[0];if(!f||f.size>5*1024*1024){toast('Image too large','error');return}
+  const url=await updateProfileImage(f);if(url){document.getElementById('pfpImg').src=url;document.getElementById('pfpImg').style.display='block';document.getElementById('pfpPl').style.display='none'}
 }
 </script>
 </body>
