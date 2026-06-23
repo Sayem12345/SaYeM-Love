@@ -4,8 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <meta name="theme-color" content="#0B141A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.json">
 <title>SEVEN - Chat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@400;500;600;700;800&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/mobile.css">
 <link rel="stylesheet" href="css/dark.css">
@@ -44,7 +53,11 @@
   <button class="chat-send" id="sendBtn" onclick="sendMsg()" disabled>➤</button>
 </div>
 
-<div class="emoji-picker" id="emojiPicker"><div class="emoji-grid" id="emojiGrid"></div></div>
+<div class="emoji-picker" id="emojiPicker">
+  <div class="emoji-search-wrap"><input type="text" id="emojiSearch" class="emoji-search" placeholder="Search emojis..." oninput="filterEmojis(this.value)"><span class="material-symbols-outlined" style="font-size:18px;color:var(--text3);padding-right:4px">search</span></div>
+  <div class="emoji-recent" id="emojiRecent" style="display:none"><div style="font-size:11px;color:var(--text3);padding:2px 4px;margin-bottom:2px">Recent</div><div id="recentEmojis" class="emoji-grid"></div></div>
+  <div class="emoji-grid" id="emojiGrid"></div>
+</div>
 <input type="file" id="imgInput" accept="image/*" style="display:none" onchange="handleImage(event)">
 
 <div class="img-viewer" id="imgViewer">
@@ -93,7 +106,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   loadPartner();
   msgUnsub=listenMessages(CId,ms=>{renderMsgs(ms);markSeen(CId)});
   listenTyping(CId,()=>{const i=document.getElementById('typingInd');i.style.display='flex';setTimeout(()=>i.style.display='none',3000)});
-  const g=document.getElementById('emojiGrid');EMOJIS.forEach(e=>{const b=document.createElement('button');b.textContent=e;b.onclick=()=>insertEmoji(e);g.appendChild(b)});
+  const g=document.getElementById('emojiGrid');EMOJIS.forEach(e=>{const b=document.createElement('button');b.textContent=e;b.dataset.emoji=e;b.className='emoji-btn';b.onclick=()=>insertEmoji(e);g.appendChild(b)});
+  loadRecentEmojis();
 });
 
 async function loadPartner(){
@@ -281,8 +295,31 @@ async function sendMsg(){
 }
 function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg()};document.getElementById('sendBtn').disabled=!e.target.value.trim()}
 function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,110)+'px'}
-function toggleEmoji(){document.getElementById('emojiPicker').classList.toggle('active')}
-function insertEmoji(e){const i=document.getElementById('chatInput');i.value+=e;i.focus();autoResize(i);document.getElementById('sendBtn').disabled=false}
+function toggleEmoji(){document.getElementById('emojiPicker').classList.toggle('active');if(document.getElementById('emojiPicker').classList.contains('active'))document.getElementById('emojiSearch').focus()}
+function insertEmoji(e){
+  const i=document.getElementById('chatInput');i.value+=e;i.focus();autoResize(i);document.getElementById('sendBtn').disabled=false;
+  saveRecentEmoji(e);
+}
+function filterEmojis(q){
+  document.querySelectorAll('#emojiGrid .emoji-btn').forEach(b=>{
+    b.style.display=!q||b.dataset.emoji.includes(q)?'':'none';
+  });
+}
+function saveRecentEmoji(e){
+  let r=JSON.parse(localStorage.getItem('recentEmojis')||'[]');
+  r=r.filter(em=>em!==e);
+  r.unshift(e);
+  if(r.length>20)r=r.slice(0,20);
+  localStorage.setItem('recentEmojis',JSON.stringify(r));
+  loadRecentEmojis();
+}
+function loadRecentEmojis(){
+  const r=JSON.parse(localStorage.getItem('recentEmojis')||'[]');
+  const c=document.getElementById('recentEmojis');const w=document.getElementById('emojiRecent');
+  if(!r.length){w.style.display='none';return}
+  w.style.display='block';c.innerHTML='';
+  r.forEach(e=>{const b=document.createElement('button');b.textContent=e;b.className='emoji-btn';b.onclick=()=>insertEmoji(e);c.appendChild(b)});
+}
 
 async function handleImage(ev){
   const f=ev.target.files[0];if(!f||f.size>5*1024*1024){toast('Image too large','error');return}
@@ -290,8 +327,37 @@ async function handleImage(ev){
   ev.target.value='';
 }
 function openViewer(url){document.getElementById('viewerImg').src=url;document.getElementById('imgViewer').classList.add('active')}
-function closeViewer(){document.getElementById('imgViewer').classList.remove('active')}
-function dlImg(){const a=document.createElement('a');a.href=document.getElementById('viewerImg').src;a.download='seven_image';a.click()}
+function closeViewer(){document.getElementById('imgViewer').classList.remove('active');const img=document.getElementById('viewerImg');img.style.transform='scale(1)';img.style.transition='none'}
+function dlImg(){const a=document.createElement('a');a.href=document.getElementById('viewerImg').src;a.download='seven_image_'+Date.now();a.click()}
+
+// Pinch zoom + swipe to close on image viewer
+document.getElementById('imgViewer').addEventListener('touchstart',function(e){
+  if(e.touches.length===2){
+    this._pinchDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+    this._pinchScale=1;
+  }
+  if(e.touches.length===1){
+    this._swipeStart={x:e.touches[0].clientX,y:e.touches[0].clientY};
+  }
+});
+document.getElementById('imgViewer').addEventListener('touchmove',function(e){
+  const img=document.getElementById('viewerImg');
+  if(e.touches.length===2){
+    const dist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+    const scale=dist/this._pinchDist;
+    this._pinchScale=Math.max(0.5,Math.min(3,scale));
+    img.style.transition='none';
+    img.style.transform='scale('+this._pinchScale+')';
+  }
+  if(e.touches.length===1&&this._swipeStart){
+    const dy=e.touches[0].clientY-this._swipeStart.y;
+    if(dy>80){closeViewer();this._swipeStart=null}
+  }
+});
+document.getElementById('imgViewer').addEventListener('touchend',function(e){
+  this._swipeStart=null;
+  if(this._pinchScale<1){closeViewer()}
+});
 
 function showInfo(){
   document.getElementById('infoModal').classList.add('active');

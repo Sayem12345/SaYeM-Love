@@ -63,6 +63,10 @@ async function sendMessage(chatId,text,type='text',imageUrl='',replyTo=null){
       const partner=userSnap.val();
       if(partner&&partner.fcmToken){
         try{
+          const senderName=currentUser?.name||'SEVEN';
+          const senderImg=currentUser?.profileImage||'';
+          const msgBody=text||'📷 Image';
+          const msgTimestamp=Date.now();
           await fetch('https://fcm.googleapis.com/fcm/send',{
             method:'POST',
             headers:{
@@ -71,8 +75,22 @@ async function sendMessage(chatId,text,type='text',imageUrl='',replyTo=null){
             },
             body:JSON.stringify({
               to:partner.fcmToken,
-              notification:{title:currentUser?.name||'SEVEN',body:text||'📷 Image',sound:'default'},
-              data:{chatId}
+              notification:{
+                title:senderName,
+                body:msgBody,
+                sound:'default',
+                icon:senderImg||''
+              },
+              data:{
+                chatId,
+                senderName,
+                senderImage:senderImg,
+                timestamp:msgTimestamp.toString(),
+                body:msgBody,
+                title:senderName,
+                image:'',
+                click_action:chatId
+              }
             })
           });
         }catch(e){}
