@@ -8,6 +8,7 @@
 <title>SEVEN - Chats</title>
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/mobile.css">
+<link rel="stylesheet" href="css/dark.css">
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
@@ -18,7 +19,7 @@
 <div class="topbar">
   <div class="topbar-brand">SEVEN</div>
   <div style="flex:1"></div>
-  <button class="topbar-btn" onclick="openSearch()" title="Search">🔍</button>
+  <button class="topbar-btn" onclick="switchTab('search')" title="Search">🔍</button>
   <button class="topbar-btn" onclick="goTo('profile.html')" title="Profile">👤</button>
 </div>
 

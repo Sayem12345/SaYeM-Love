@@ -211,18 +211,25 @@ async function getUserById(userId){
 function listenUnreadCount(callback){
   const myId=uid();
   if(!myId)return;
-  REFS.messages.on('value',snap=>{
+  const myChats={};
+  REFS.chats.on('value',chatSnap=>{
+    chatSnap.forEach(child=>{
+      const chat=child.val();
+      if(chat.participants&&chat.participants[myId])myChats[child.key]=true;
+    });
     let count=0;
-    snap.forEach(chatSnap=>{
-      const chatId=chatSnap.key;
-      // Check if this chat involves me
-      if(chatId.includes(myId)){
-        chatSnap.forEach(msgSnap=>{
+    const pending=Object.keys(myChats);
+    if(!pending.length){callback(0);return}
+    let done=0;
+    pending.forEach(chatId=>{
+      REFS.messages.child(chatId).orderByChild('senderId').once('value',snap=>{
+        snap.forEach(msgSnap=>{
           const msg=msgSnap.val();
           if(msg.senderId!==myId&&!msg.seen)count++;
         });
-      }
+        done++;
+        if(done===pending.length)callback(count);
+      });
     });
-    callback(count);
   });
 }

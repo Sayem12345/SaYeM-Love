@@ -44,6 +44,7 @@ function isLoggedIn(){return!!getSession()}
 
 function goTo(page){
   if(page.includes('?'))window.location.href=page;
+  else if(page.endsWith('.html'))window.location.href=page;
   else window.location.href=page+'.html';
 }
 
