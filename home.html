@@ -29,17 +29,17 @@
   <div class="topbar">
     <div class="topbar-brand">SEVEN</div>
     <div style="flex:1"></div>
-    <button class="topbar-btn" onclick="switchTab('search')">🔍</button>
-    <button class="topbar-btn" onclick="goTo('profile.html')">👤</button>
+    <button class="topbar-btn" onclick="switchTab('search')"><i class="fa-solid fa-magnifying-glass"></i></button>
+    <button class="topbar-btn" onclick="goTo('profile.html')"><i class="fa-solid fa-user"></i></button>
   </div>
 
   <!-- ===== TAB: CHATS ===== -->
   <div class="tab-content active" id="tabChats">
-    <div id="archiveToggle" class="archive-toggle" onclick="toggleArchiveSection()" style="display:none">📦 <span>Archived chats</span> <span id="archiveCount" style="color:var(--text3);font-size:13px;margin-left:4px"></span> <span style="margin-left:auto;font-size:11px;color:var(--text3)">▸</span></div>
+    <div id="archiveToggle" class="archive-toggle" onclick="toggleArchiveSection()" style="display:none"><i class="fa-solid fa-box-archive"></i> <span>Archived chats</span> <span id="archiveCount" style="color:var(--text3);font-size:13px;margin-left:4px"></span> <span style="margin-left:auto;font-size:11px;color:var(--text3)"><i class="fa-solid fa-chevron-down"></i></span></div>
     <div id="archivedSection" style="display:none"><div class="chat-list" id="archivedList"></div></div>
     <div id="chatsList" class="chat-list"></div>
     <div id="chatsEmpty" class="empty" style="display:none">
-      <div class="empty-icon">💬</div>
+      <div class="empty-icon"><i class="fa-regular fa-comment-dots"></i></div>
       <div class="empty-title">No chats yet</div>
       <div class="empty-desc">Start a conversation with someone</div>
     </div>
@@ -49,7 +49,7 @@
   <div class="tab-content" id="tabActive">
     <div id="activeUsers" style="padding:4px 8px;overflow-y:auto;flex:1"></div>
     <div id="activeEmpty" class="empty" style="display:none">
-      <div class="empty-icon">🟢</div>
+      <div class="empty-icon"><i class="fa-solid fa-circle" style="color:#10B981"></i></div>
       <div class="empty-title">No one online</div>
       <div class="empty-desc">Active users will appear here</div>
     </div>
@@ -59,13 +59,13 @@
   <div class="tab-content" id="tabSearch">
     <div class="search-bar">
       <div class="search-field">
-        <span>🔍</span>
+        <i class="fa-solid fa-magnifying-glass" style="font-size:14px;color:var(--text3)"></i>
         <input type="text" id="searchInput" placeholder="Search users..." oninput="handleSearch(this.value)">
       </div>
     </div>
     <div id="searchResults" style="flex:1;overflow-y:auto;padding:4px 8px"></div>
     <div id="searchEmpty" class="empty" style="display:none">
-      <div class="empty-icon">🔍</div>
+      <div class="empty-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
       <div class="empty-title">Search users</div>
       <div class="empty-desc">Type a name to find people</div>
     </div>
@@ -78,7 +78,7 @@
         <div style="position:relative;cursor:pointer" onclick="document.getElementById('profileUpload').click()">
           <img id="pfpImg" src="" class="avatar avatar-xxl" alt="" style="display:none">
           <div id="pfpPlaceholder" class="avatar avatar-xxl avatar-placeholder" style="font-size:44px">?</div>
-          <div style="position:absolute;bottom:4px;right:4px;width:30px;height:30px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid var(--bg)">📷</div>
+          <div style="position:absolute;bottom:4px;right:4px;width:30px;height:30px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid var(--bg)"><i class="fa-solid fa-camera"></i></div>
         </div>
         <div class="profile-name" id="pfpName">User</div>
         <div class="profile-username" id="pfpUsername">@user</div>
@@ -88,7 +88,7 @@
           <div class="profile-stat"><div class="profile-stat-num" id="pfpDays">0</div><div class="profile-stat-label">Days</div></div>
         </div>
         <div class="profile-actions">
-          <button class="btn btn-ghost btn-full" onclick="document.getElementById('bioField').style.display='block';this.style.display='none'">✏️ Edit Bio</button>
+          <button class="btn btn-ghost btn-full" onclick="document.getElementById('bioField').style.display='block';this.style.display='none'"><i class="fa-solid fa-pen"></i> Edit Bio</button>
           <div id="bioField" style="display:none;width:100%">
             <div class="input-group"><input type="text" class="input-field" id="bioInput" placeholder="Write your bio..." maxlength="100"></div>
             <button class="btn btn-sm btn-primary btn-full" onclick="saveBio()">Save</button>
@@ -104,54 +104,54 @@
       <div class="settings-group">
         <div class="settings-group-title">Preferences</div>
         <div class="settings-row" onclick="toggleTheme()">
-          <div class="settings-row-left"><div class="settings-row-icon cyan">🌙</div><div><div class="settings-row-label">Dark Mode</div><div class="settings-row-desc">Toggle dark/light theme</div></div></div>
+          <div class="settings-row-left"><div class="settings-row-icon cyan"><i class="fa-solid fa-moon"></i></div><div><div class="settings-row-label">Dark Mode</div><div class="settings-row-desc">Toggle dark/light theme</div></div></div>
           <div class="toggle active" id="themeToggle"><div class="toggle-knob"></div></div>
         </div>
         <div class="settings-row" onclick="toggleNotif()">
-          <div class="settings-row-left"><div class="settings-row-icon blue">🔔</div><div><div class="settings-row-label">Notifications</div><div class="settings-row-desc">Receive push alerts</div></div></div>
+          <div class="settings-row-left"><div class="settings-row-icon blue"><i class="fa-solid fa-bell"></i></div><div><div class="settings-row-label">Notifications</div><div class="settings-row-desc">Receive push alerts</div></div></div>
           <div class="toggle active" id="notifToggle"><div class="toggle-knob"></div></div>
         </div>
         <div class="settings-row" onclick="toggleSound()">
-          <div class="settings-row-left"><div class="settings-row-icon green">🔊</div><div><div class="settings-row-label">Sound</div><div class="settings-row-desc">Message notification sounds</div></div></div>
+          <div class="settings-row-left"><div class="settings-row-icon green"><i class="fa-solid fa-volume-high"></i></div><div><div class="settings-row-label">Sound</div><div class="settings-row-desc">Message notification sounds</div></div></div>
           <div class="toggle active" id="soundToggle"><div class="toggle-knob"></div></div>
         </div>
         <div class="settings-row" onclick="toggleReadReceipts()">
-          <div class="settings-row-left"><div class="settings-row-icon blue">👁️</div><div><div class="settings-row-label">Read Receipts</div><div class="settings-row-desc">Let others see when you read</div></div></div>
+          <div class="settings-row-left"><div class="settings-row-icon blue"><i class="fa-solid fa-eye"></i></div><div><div class="settings-row-label">Read Receipts</div><div class="settings-row-desc">Let others see when you read</div></div></div>
           <div class="toggle active" id="rrToggle"><div class="toggle-knob"></div></div>
         </div>
         <div class="settings-row" onclick="toggleVibrate()">
-          <div class="settings-row-left"><div class="settings-row-icon cyan">📳</div><div><div class="settings-row-label">Vibrate</div><div class="settings-row-desc">Haptic feedback on messages</div></div></div>
+          <div class="settings-row-left"><div class="settings-row-icon cyan"><i class="fa-solid fa-mobile-screen-button"></i></div><div><div class="settings-row-label">Vibrate</div><div class="settings-row-desc">Haptic feedback on messages</div></div></div>
           <div class="toggle active" id="vibToggle"><div class="toggle-knob"></div></div>
         </div>
         <div class="settings-row" onclick="toggleAnim()">
-          <div class="settings-row-left"><div class="settings-row-icon green">✨</div><div><div class="settings-row-label">Animations</div><div class="settings-row-desc">UI animations and transitions</div></div></div>
+          <div class="settings-row-left"><div class="settings-row-icon green"><i class="fa-solid fa-sparkles"></i></div><div><div class="settings-row-label">Animations</div><div class="settings-row-desc">UI animations and transitions</div></div></div>
           <div class="toggle active" id="animToggle"><div class="toggle-knob"></div></div>
         </div>
       </div>
       <div class="settings-group">
         <div class="settings-group-title">Storage</div>
         <div class="settings-row" onclick="showGitToken()">
-          <div class="settings-row-left"><div class="settings-row-icon cyan">🐙</div><div><div class="settings-row-label">GitHub Token</div><div class="settings-row-desc">Set for image upload access</div></div></div>
-          <span style="color:var(--text3)" id="gtStatus">⚪</span>
+          <div class="settings-row-left"><div class="settings-row-icon cyan"><i class="fa-brands fa-github"></i></div><div><div class="settings-row-label">GitHub Token</div><div class="settings-row-desc">Set for image upload access</div></div></div>
+          <span style="color:var(--text3)" id="gtStatus"><i class="fa-regular fa-circle"></i></span>
         </div>
       </div>
       <div class="settings-group">
         <div class="settings-group-title">Account</div>
         <div class="settings-row" onclick="goTo('profile.html')">
-          <div class="settings-row-left"><div class="settings-row-icon blue">👤</div><div><div class="settings-row-label">Edit Profile</div><div class="settings-row-desc">Change name, photo, bio</div></div></div>
-          <span style="color:var(--text3)">→</span>
+          <div class="settings-row-left"><div class="settings-row-icon blue"><i class="fa-solid fa-user"></i></div><div><div class="settings-row-label">Edit Profile</div><div class="settings-row-desc">Change name, photo, bio</div></div></div>
+          <span style="color:var(--text3)"><i class="fa-solid fa-chevron-right"></i></span>
         </div>
         <div class="settings-row" onclick="changePwd()">
-          <div class="settings-row-left"><div class="settings-row-icon cyan">🔑</div><div><div class="settings-row-label">Change Password</div><div class="settings-row-desc">Update your password</div></div></div>
-          <span style="color:var(--text3)">→</span>
+          <div class="settings-row-left"><div class="settings-row-icon cyan"><i class="fa-solid fa-key"></i></div><div><div class="settings-row-label">Change Password</div><div class="settings-row-desc">Update your password</div></div></div>
+          <span style="color:var(--text3)"><i class="fa-solid fa-chevron-right"></i></span>
         </div>
         <div class="settings-row" onclick="clearCache()">
-          <div class="settings-row-left"><div class="settings-row-icon green">🧹</div><div><div class="settings-row-label">Clear Cache</div><div class="settings-row-desc">Free up storage space</div></div></div>
+          <div class="settings-row-left"><div class="settings-row-icon green"><i class="fa-solid fa-broom"></i></div><div><div class="settings-row-label">Clear Cache</div><div class="settings-row-desc">Free up storage space</div></div></div>
         </div>
       </div>
       <div class="settings-group">
         <div class="settings-row" onclick="logout()" style="margin-top:8px">
-          <div class="settings-row-left"><div class="settings-row-icon red">🚪</div><div><div class="settings-row-label" style="color:var(--danger)">Logout</div><div class="settings-row-desc">Sign out of SEVEN</div></div></div>
+          <div class="settings-row-left"><div class="settings-row-icon red"><i class="fa-solid fa-right-from-bracket"></i></div><div><div class="settings-row-label" style="color:var(--danger)">Logout</div><div class="settings-row-desc">Sign out of SEVEN</div></div></div>
         </div>
       </div>
     </div>
@@ -159,23 +159,23 @@
 
   <!-- ===== BOTTOM TABS ===== -->
   <div class="bottom-tabs">
-    <button class="bottom-tab active" data-tab="tabChats" onclick="switchTab('tabChats')"><span class="bottom-tab-icon">💬</span>Chats</button>
-    <button class="bottom-tab" data-tab="tabActive" onclick="switchTab('tabActive')"><span class="bottom-tab-icon">🟢</span>Active</button>
-    <button class="bottom-tab" data-tab="tabSearch" onclick="switchTab('tabSearch')"><span class="bottom-tab-icon">🔍</span>Search</button>
-    <button class="bottom-tab" data-tab="tabProfile" onclick="switchTab('tabProfile')"><span class="bottom-tab-icon">👤</span>Profile</button>
-    <button class="bottom-tab" data-tab="tabSettings" onclick="switchTab('tabSettings')"><span class="bottom-tab-icon">⚙️</span>Settings</button>
+    <button class="bottom-tab active" data-tab="tabChats" onclick="switchTab('tabChats')"><span class="bottom-tab-icon"><i class="fa-regular fa-comment-dots"></i></span><span>Chats</span></button>
+    <button class="bottom-tab" data-tab="tabActive" onclick="switchTab('tabActive')"><span class="bottom-tab-icon"><i class="fa-solid fa-circle" style="color:#10B981;font-size:14px"></i></span><span>Active</span></button>
+    <button class="bottom-tab" data-tab="tabSearch" onclick="switchTab('tabSearch')"><span class="bottom-tab-icon"><i class="fa-solid fa-magnifying-glass"></i></span><span>Search</span></button>
+    <button class="bottom-tab" data-tab="tabProfile" onclick="switchTab('tabProfile')"><span class="bottom-tab-icon"><i class="fa-solid fa-user"></i></span><span>Profile</span></button>
+    <button class="bottom-tab" data-tab="tabSettings" onclick="switchTab('tabSettings')"><span class="bottom-tab-icon"><i class="fa-solid fa-gear"></i></span><span>Settings</span></button>
   </div>
 </div>
 
 <!-- FAB -->
-<div class="fab" onclick="showNewChat()">✏️</div>
+<div class="fab" onclick="showNewChat()"><i class="fa-solid fa-pen"></i></div>
 
 <!-- NEW CHAT MODAL -->
 <div class="modal-overlay" id="newChatModal">
   <div class="modal">
     <div class="modal-title">New Chat</div>
     <div class="search-field" style="margin-bottom:10px">
-      <span>🔍</span>
+      <i class="fa-solid fa-magnifying-glass" style="font-size:14px;color:var(--text3)"></i>
       <input type="text" id="newChatSearch" placeholder="Search users..." oninput="searchUsersNewChat(this.value)">
     </div>
     <div id="newChatResults" style="max-height:260px;overflow-y:auto"></div>
@@ -270,7 +270,7 @@ function createChatItem(chat,isArchived){
   const my=uid();
   if(chat._unread>0)unreadB=`<span class="unread-badge-sm">${chat._unread>99?'99+':chat._unread}</span>`;
   d.innerHTML=`
-    ${chat.pinned?'<div class="chat-pin-icon">📌</div>':''}
+    ${chat.pinned?'<div class="chat-pin-icon"><i class="fa-solid fa-thumbtack"></i></div>':''}
     <div style="position:relative;flex-shrink:0">${avatar}${chat.partnerOnline?'<div class="online-dot"></div>':''}${unreadB}</div>
     <div class="chat-item-info">
       <div class="chat-item-name">${escapeHtml(chat.partnerName)}</div>
@@ -306,12 +306,12 @@ function showChatContext(chatId,partnerName,isArchived){
   const menu=document.createElement('div');menu.style.cssText='position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-radius:14px 14px 0 0;z-index:200;padding:14px;animation:fadeIn .2s ease;border-top:1px solid var(--glass-border)';
   let btns='';
   if(isArchived){
-    btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px" onclick="closeCtxMenu();toggleArchiveChat('${chatId}',false)">📦 Unarchive</button>`;
+    btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px" onclick="closeCtxMenu();toggleArchiveChat('${chatId}',false)"><i class="fa-solid fa-box-archive"></i> Unarchive</button>`;
   }else{
-    btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px" onclick="closeCtxMenu();togglePinChat('${chatId}')">📌 Toggle Pin</button>`;
-    btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px" onclick="closeCtxMenu();toggleArchiveChat('${chatId}',true)">📦 Archive</button>`;
+    btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px" onclick="closeCtxMenu();togglePinChat('${chatId}')"><i class="fa-solid fa-thumbtack"></i> Toggle Pin</button>`;
+    btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px" onclick="closeCtxMenu();toggleArchiveChat('${chatId}',true)"><i class="fa-solid fa-box-archive"></i> Archive</button>`;
   }
-  btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px;color:var(--danger)" onclick="closeCtxMenu();deleteChatConfirm('${chatId}')">🗑️ Delete Chat</button>`;
+  btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px;color:var(--danger)" onclick="closeCtxMenu();deleteChatConfirm('${chatId}')"><i class="fa-solid fa-trash-can"></i> Delete Chat</button>`;
   btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px" onclick="closeCtxMenu()">Cancel</button>`;
   menu.innerHTML=btns;document.body.appendChild(ov);document.body.appendChild(menu);
   window.closeCtxMenu=()=>{menu.remove();ov.remove()};
@@ -556,7 +556,7 @@ function saveGitToken(){
 function updateGtStatus(){
   const s=document.getElementById('gtStatus');
   const t=localStorage.getItem('gt');
-  s.textContent=t?'🟢':'⚪';
+  s.innerHTML=t?'<i class="fa-solid fa-circle" style="color:#10B981"></i>':'<i class="fa-regular fa-circle"></i>';
 }
 async function logout(){
   if(!confirm('Logout from SEVEN?'))return;

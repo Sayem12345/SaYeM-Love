@@ -24,25 +24,25 @@
 </head>
 <body>
 <div class="topbar">
-  <button class="topbar-btn" onclick="goTo('home.html')">←</button>
+  <button class="topbar-btn" onclick="goTo('home.html')"><i class="fa-solid fa-arrow-left"></i></button>
   <div class="topbar-center"><div class="topbar-title">Settings</div></div>
   <div style="width:38px"></div>
 </div>
 <div style="flex:1;overflow-y:auto;padding:8px 0">
   <div class="settings-group"><div class="settings-group-title">Preferences</div>
-    <div class="settings-row" onclick="toggleTheme()"><div class="settings-row-left"><div class="settings-row-icon cyan">🌙</div><div><div class="settings-row-label">Dark Mode</div><div class="settings-row-desc">Toggle dark/light theme</div></div></div><div class="toggle active" id="sTheme"><div class="toggle-knob"></div></div></div>
-    <div class="settings-row" onclick="toggleNotif()"><div class="settings-row-left"><div class="settings-row-icon blue">🔔</div><div><div class="settings-row-label">Notifications</div><div class="settings-row-desc">Receive push alerts</div></div></div><div class="toggle active" id="sNotif"><div class="toggle-knob"></div></div></div>
-    <div class="settings-row" onclick="toggleSound()"><div class="settings-row-left"><div class="settings-row-icon green">🔊</div><div><div class="settings-row-label">Sound</div><div class="settings-row-desc">Message notification sounds</div></div></div><div class="toggle active" id="sSound"><div class="toggle-knob"></div></div></div>
+    <div class="settings-row" onclick="toggleTheme()"><div class="settings-row-left"><div class="settings-row-icon cyan"><i class="fa-solid fa-moon"></i></div><div><div class="settings-row-label">Dark Mode</div><div class="settings-row-desc">Toggle dark/light theme</div></div></div><div class="toggle active" id="sTheme"><div class="toggle-knob"></div></div></div>
+    <div class="settings-row" onclick="toggleNotif()"><div class="settings-row-left"><div class="settings-row-icon blue"><i class="fa-solid fa-bell"></i></div><div><div class="settings-row-label">Notifications</div><div class="settings-row-desc">Receive push alerts</div></div></div><div class="toggle active" id="sNotif"><div class="toggle-knob"></div></div></div>
+    <div class="settings-row" onclick="toggleSound()"><div class="settings-row-left"><div class="settings-row-icon green"><i class="fa-solid fa-volume-high"></i></div><div><div class="settings-row-label">Sound</div><div class="settings-row-desc">Message notification sounds</div></div></div><div class="toggle active" id="sSound"><div class="toggle-knob"></div></div></div>
   </div>
   <div class="settings-group"><div class="settings-group-title">Storage</div>
-    <div class="settings-row" onclick="showGitToken()"><div class="settings-row-left"><div class="settings-row-icon cyan">🐙</div><div><div class="settings-row-label">GitHub Token</div><div class="settings-row-desc">Set for image uploads</div></div></div><span style="color:var(--text3)" id="sGtStatus">⚪</span></div>
+    <div class="settings-row" onclick="showGitToken()"><div class="settings-row-left"><div class="settings-row-icon cyan"><i class="fa-brands fa-github"></i></div><div><div class="settings-row-label">GitHub Token</div><div class="settings-row-desc">Set for image uploads</div></div></div><span style="color:var(--text3)" id="sGtStatus"><i class="fa-regular fa-circle"></i></span></div>
   </div>
   <div class="settings-group"><div class="settings-group-title">Account</div>
-    <div class="settings-row" onclick="goTo('profile.html')"><div class="settings-row-left"><div class="settings-row-icon blue">👤</div><div><div class="settings-row-label">Edit Profile</div><div class="settings-row-desc">Change name, photo, bio</div></div></div><span style="color:var(--text3)">→</span></div>
-    <div class="settings-row" onclick="changePwd()"><div class="settings-row-left"><div class="settings-row-icon cyan">🔑</div><div><div class="settings-row-label">Change Password</div><div class="settings-row-desc">Update your password</div></div></div><span style="color:var(--text3)">→</span></div>
-    <div class="settings-row" onclick="clearCache()"><div class="settings-row-left"><div class="settings-row-icon green">🧹</div><div><div class="settings-row-label">Clear Cache</div><div class="settings-row-desc">Free up storage space</div></div></div></div>
+    <div class="settings-row" onclick="goTo('profile.html')"><div class="settings-row-left"><div class="settings-row-icon blue"><i class="fa-solid fa-user"></i></div><div><div class="settings-row-label">Edit Profile</div><div class="settings-row-desc">Change name, photo, bio</div></div></div><span style="color:var(--text3)"><i class="fa-solid fa-chevron-right"></i></span></div>
+    <div class="settings-row" onclick="changePwd()"><div class="settings-row-left"><div class="settings-row-icon cyan"><i class="fa-solid fa-key"></i></div><div><div class="settings-row-label">Change Password</div><div class="settings-row-desc">Update your password</div></div></div><span style="color:var(--text3)"><i class="fa-solid fa-chevron-right"></i></span></div>
+    <div class="settings-row" onclick="clearCache()"><div class="settings-row-left"><div class="settings-row-icon green"><i class="fa-solid fa-broom"></i></div><div><div class="settings-row-label">Clear Cache</div><div class="settings-row-desc">Free up storage space</div></div></div></div>
   </div>
-  <div class="settings-group"><div class="settings-row" onclick="confirmLogout()" style="margin-top:8px"><div class="settings-row-left"><div class="settings-row-icon red">🚪</div><div><div class="settings-row-label" style="color:var(--danger)">Logout</div><div class="settings-row-desc">Sign out of SEVEN</div></div></div></div></div>
+  <div class="settings-group"><div class="settings-row" onclick="confirmLogout()" style="margin-top:8px"><div class="settings-row-left"><div class="settings-row-icon red"><i class="fa-solid fa-right-from-bracket"></i></div><div><div class="settings-row-label" style="color:var(--danger)">Logout</div><div class="settings-row-desc">Sign out of SEVEN</div></div></div></div></div>
 </div>
 <div class="modal-overlay" id="pwdModal">
   <div class="modal"><div class="modal-title">Change Password</div>
@@ -82,7 +82,7 @@ function changePwd(){document.getElementById('pwdModal').classList.add('active')
 function closeModal(id){document.getElementById(id).classList.remove('active')}
 function showGitToken(){document.getElementById('sGtInput').value=localStorage.getItem('gt')||'';document.getElementById('sGtModal').classList.add('active')}
 function saveGitToken(){const v=document.getElementById('sGtInput').value.trim();if(!v||!v.startsWith('ghp_')){toast('Invalid token','error');return}localStorage.setItem('gt',v);window.__GT=v;updateGtStatus();closeModal('sGtModal');toast('Token saved','success')}
-function updateGtStatus(){const s=document.getElementById('sGtStatus');s.textContent=localStorage.getItem('gt')?'🟢':'⚪'}
+function updateGtStatus(){const s=document.getElementById('sGtStatus');s.innerHTML=localStorage.getItem('gt')?'<i class="fa-solid fa-circle" style="color:#10B981"></i>':'<i class="fa-regular fa-circle"></i>'}
 async function savePwd(){
   const c=document.getElementById('curPwd').value,n=document.getElementById('newPwd').value,co=document.getElementById('conPwd').value;
   if(!c||!n||!co){toast('Fill all fields','error');return}

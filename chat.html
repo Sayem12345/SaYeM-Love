@@ -24,19 +24,19 @@
 </head>
 <body>
 <div class="topbar">
-  <button class="topbar-btn" onclick="goTo('home.html')">←</button>
+  <button class="topbar-btn" onclick="goTo('home.html')"><i class="fa-solid fa-arrow-left"></i></button>
   <img id="chatAvatar" src="" class="topbar-btn" style="border-radius:50%;width:34px;height:34px;object-fit:cover;display:none" alt="">
   <div id="chatAvatarPl" class="avatar avatar-sm avatar-placeholder" style="width:34px;height:34px;font-size:14px;display:none">?</div>
   <div class="topbar-center">
     <div class="topbar-title" id="chatName">Loading...</div>
     <div class="topbar-sub" id="chatStatus">...</div>
   </div>
-  <button class="topbar-btn" onclick="showInfo()">⋮</button>
+  <button class="topbar-btn" onclick="showInfo()"><i class="fa-solid fa-ellipsis-vertical"></i></button>
 </div>
 
 <div class="reply-bar" id="replyBar">
   <div class="reply-bar-info"><div class="reply-bar-name" id="replyName">Replying</div><div class="reply-bar-text" id="replyText"></div></div>
-  <button class="reply-bar-cancel" onclick="cancelReply()">✕</button>
+  <button class="reply-bar-cancel" onclick="cancelReply()"><i class="fa-solid fa-xmark"></i></button>
 </div>
 
 <div class="msg-container" id="msgContainer">
@@ -45,25 +45,25 @@
 </div>
 
 <div class="chat-input-wrap">
-  <button class="chat-action-btn" onclick="toggleEmoji()">😊</button>
+  <button class="chat-action-btn" onclick="toggleEmoji()"><i class="fa-regular fa-face-smile"></i></button>
   <div class="chat-input-field">
     <textarea class="chat-input-text" id="chatInput" placeholder="Message..." rows="1" oninput="autoResize(this);setTyping(CId,this.value.length>0)" onkeydown="handleKey(event)"></textarea>
-    <div class="chat-input-actions"><button class="chat-action-btn" onclick="document.getElementById('imgInput').click()">📷</button></div>
+    <div class="chat-input-actions"><button class="chat-action-btn" onclick="document.getElementById('imgInput').click()"><i class="fa-solid fa-camera"></i></button></div>
   </div>
-  <button class="chat-send" id="sendBtn" onclick="sendMsg()" disabled>➤</button>
+  <button class="chat-send" id="sendBtn" onclick="sendMsg()" disabled><i class="fa-solid fa-paper-plane"></i></button>
 </div>
 
 <div class="emoji-picker" id="emojiPicker">
-  <div class="emoji-search-wrap"><input type="text" id="emojiSearch" class="emoji-search" placeholder="Search emojis..." oninput="filterEmojis(this.value)"><span class="material-symbols-outlined" style="font-size:18px;color:var(--text3);padding-right:4px">search</span></div>
+  <div class="emoji-search-wrap"><input type="text" id="emojiSearch" class="emoji-search" placeholder="Search emojis..." oninput="filterEmojis(this.value)"><i class="fa-solid fa-magnifying-glass" style="font-size:14px;color:var(--text3);padding-right:4px"></i></div>
   <div class="emoji-recent" id="emojiRecent" style="display:none"><div style="font-size:11px;color:var(--text3);padding:2px 4px;margin-bottom:2px">Recent</div><div id="recentEmojis" class="emoji-grid"></div></div>
   <div class="emoji-grid" id="emojiGrid"></div>
 </div>
 <input type="file" id="imgInput" accept="image/*" style="display:none" onchange="handleImage(event)">
 
 <div class="img-viewer" id="imgViewer">
-  <button class="img-viewer-close" onclick="closeViewer()">✕</button>
+  <button class="img-viewer-close" onclick="closeViewer()"><i class="fa-solid fa-xmark"></i></button>
   <img id="viewerImg" src="" alt="">
-  <button class="img-viewer-dl" onclick="dlImg()">⬇ Download</button>
+  <button class="img-viewer-dl" onclick="dlImg()"><i class="fa-solid fa-download"></i> Download</button>
 </div>
 
 <div class="modal-overlay" id="infoModal">
@@ -80,7 +80,7 @@
 <!-- FORWARD MODAL -->
 <div class="modal-overlay" id="fwdModal">
   <div class="modal"><div class="modal-title">Forward to</div>
-    <div class="search-field" style="margin-bottom:10px"><span>🔍</span><input type="text" id="fwdSearch" placeholder="Search chats..." oninput="searchFwd(this.value)"></div>
+    <div class="search-field" style="margin-bottom:10px"><i class="fa-solid fa-magnifying-glass" style="font-size:14px;color:var(--text3)"></i><input type="text" id="fwdSearch" placeholder="Search chats..." oninput="searchFwd(this.value)"></div>
     <div id="fwdResults" style="max-height:300px;overflow-y:auto"></div>
     <button class="btn btn-ghost btn-full" onclick="closeModal('fwdModal')" style="margin-top:8px">Cancel</button>
   </div>
@@ -132,11 +132,11 @@ function renderMsgs(msgs){
     wrap.dataset.id=m.id;
 
     // Swipe reply indicator
-    const swi=document.createElement('div');swi.className='swipe-indicator';swi.textContent='↩';wrap.appendChild(swi);
+    const swi=document.createElement('div');swi.className='swipe-indicator';swi.innerHTML='<i class="fa-solid fa-reply"></i>';wrap.appendChild(swi);
 
     const msg=document.createElement('div');
     msg.className='msg '+(mine?'sent':'rcvd');
-    if(m.pinned)msg.innerHTML+='<div class="msg-pin">📌</div>';
+    if(m.pinned)msg.innerHTML+='<div class="msg-pin"><i class="fa-solid fa-thumbtack"></i></div>';
 
     let html='';
     // Reply quote
@@ -147,7 +147,7 @@ function renderMsgs(msgs){
     if(m.deleted){html+=`<div class="msg-deleted">${m.deleted==='everyone'?'This message was deleted':'You deleted this message'}</div>`}
     // Text
     else if(m.text){
-      if(m.starred)html+=`<span class="msg-star">⭐</span>`;
+      if(m.starred)html+=`<span class="msg-star"><i class="fa-solid fa-star" style="color:var(--warning);font-size:11px"></i></span>`;
       html+=`<div class="msg-text">${escapeHtml(m.text)}</div>`;
     }
     // Edited label
@@ -207,19 +207,19 @@ function showMenu(m){
   const menu=document.createElement('div');menu.style.cssText='position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-radius:14px 14px 0 0;z-index:200;padding:14px;box-shadow:0 -4px 24px rgba(0,0,0,.4);animation:fadeIn .2s ease;border-top:1px solid var(--glass-border)';
   const t=_ctxMsg.text||'';
   let btns='';
-  btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px" onclick="closeMenu();ctxReply()">↩️ Reply</button>`;
-  btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px" onclick="closeMenu();ctxCopy()">📋 Copy</button>`;
+  btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px" onclick="closeMenu();ctxReply()"><i class="fa-solid fa-reply"></i> Reply</button>`;
+  btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px" onclick="closeMenu();ctxCopy()"><i class="fa-regular fa-copy"></i> Copy</button>`;
   if(!_ctxMsg.deleted){
-    btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px" onclick="closeMenu();ctxForward()">➡️ Forward</button>`;
+    btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px" onclick="closeMenu();ctxForward()"><i class="fa-solid fa-forward"></i> Forward</button>`;
     if(mine){
-      btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px" onclick="closeMenu();ctxEdit()">✏️ Edit</button>`;
-      btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px" onclick="closeMenu();ctxPin()">📌 ${_ctxMsg.pinned?'Unpin':'Pin'}</button>`;
+      btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px" onclick="closeMenu();ctxEdit()"><i class="fa-solid fa-pen"></i> Edit</button>`;
+      btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px" onclick="closeMenu();ctxPin()"><i class="fa-solid fa-thumbtack"></i> ${_ctxMsg.pinned?'Unpin':'Pin'}</button>`;
     }
-    btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px" onclick="closeMenu();ctxStar()">⭐ ${_ctxMsg.starred?'Unstar':'Star'}</button>`;
+    btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px" onclick="closeMenu();ctxStar()"><i class="fa-regular fa-star"></i> ${_ctxMsg.starred?'Unstar':'Star'}</button>`;
   }
   if(mine){
-    if(!_ctxMsg.deleted)btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px;color:var(--danger)" onclick="closeMenu();ctxDelMe()">🗑️ Delete for me</button>`;
-    btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px;color:var(--danger)" onclick="closeMenu();ctxDelAll()">🗑️ Delete for everyone</button>`;
+    if(!_ctxMsg.deleted)btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px;color:var(--danger)" onclick="closeMenu();ctxDelMe()"><i class="fa-solid fa-trash-can"></i> Delete for me</button>`;
+    btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px;color:var(--danger)" onclick="closeMenu();ctxDelAll()"><i class="fa-solid fa-trash-can"></i> Delete for everyone</button>`;
   }
   btns+=`<div style="display:flex;gap:4px;justify-content:center;padding:8px 0;border-top:1px solid var(--glass-border);margin-top:8px">`;
   REACTIONS.forEach(r=>{btns+=`<button style="font-size:24px;width:40px;height:40px;border-radius:50%;background:transparent;border:none" onclick="closeMenu();ctxReact('${r}')">${r}</button>`});
@@ -252,6 +252,8 @@ function toggleReaction(mid,emoji){
   });
 }
 function replyTo(text,id){reply={text,id};document.getElementById('replyBar').classList.add('show');document.getElementById('replyName').textContent='Replying';document.getElementById('replyText').textContent=text||'📷 Image';document.getElementById('chatInput').focus()}
+
+// Keep camera emoji for reply-to-image placeholder since it indicates content type
 function cancelReply(){reply=null;editing=null;document.getElementById('replyBar').classList.remove('show');document.getElementById('replyName').textContent='Replying'}
 function editMsg(id,t){
   editing={id,text:t};
@@ -270,7 +272,7 @@ function showFwdResults(chats){
       closeModal('fwdModal');
       const fwd=window._fwd;
       if(fwd.type==='image'&&fwd.imgUrl)await sendMessage(ch.id,'','image',fwd.imgUrl);
-      else if(fwd.text)await sendMessage(ch.id,'📨 Forwarded: '+fwd.text,'text');
+      else if(fwd.text)await sendMessage(ch.id,'↪ Forwarded: '+fwd.text,'text');
       toast('Forwarded','success');
     };
     c.appendChild(d);

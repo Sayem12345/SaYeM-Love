@@ -24,16 +24,16 @@
 </head>
 <body>
 <div class="topbar">
-  <button class="topbar-btn" onclick="goTo('home.html')">←</button>
+  <button class="topbar-btn" onclick="goTo('home.html')"><i class="fa-solid fa-arrow-left"></i></button>
   <div class="topbar-center"><div class="topbar-title">Profile</div></div>
-  <button class="topbar-btn" onclick="goTo('settings.html')">⚙️</button>
+  <button class="topbar-btn" onclick="goTo('settings.html')"><i class="fa-solid fa-gear"></i></button>
 </div>
 <div style="flex:1;overflow-y:auto">
   <div style="padding:24px 16px;text-align:center">
     <div style="position:relative;cursor:pointer;display:inline-block" onclick="document.getElementById('pfpUpload').click()">
       <img id="pfpImg" src="" class="avatar avatar-xxl" alt="" style="display:none">
       <div id="pfpPl" class="avatar avatar-xxl avatar-placeholder" style="font-size:44px">?</div>
-      <div style="position:absolute;bottom:4px;right:4px;width:30px;height:30px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid var(--bg)">📷</div>
+      <div style="position:absolute;bottom:4px;right:4px;width:30px;height:30px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid var(--bg)"><i class="fa-solid fa-camera"></i></div>
     </div>
     <div style="font-size:22px;font-weight:800;margin-top:10px" id="pfpName">User</div>
     <div style="font-size:13px;color:var(--text3);margin-top:3px" id="pfpUser">@user</div>
@@ -44,7 +44,7 @@
     <div style="text-align:center"><div style="font-size:19px;font-weight:800;color:var(--primary)" id="pfpDays">0</div><div style="font-size:12px;color:var(--text3)">Days</div></div>
   </div>
   <div style="padding:12px 16px">
-    <button class="btn btn-ghost btn-full" onclick="document.getElementById('bioEdit').style.display='block';this.style.display='none'">✏️ Edit Bio</button>
+    <button class="btn btn-ghost btn-full" onclick="document.getElementById('bioEdit').style.display='block';this.style.display='none'"><i class="fa-solid fa-pen"></i> Edit Bio</button>
     <div id="bioEdit" style="display:none;margin-top:8px">
       <div class="input-group"><input type="text" class="input-field" id="bioInput" placeholder="Write your bio..." maxlength="100"></div>
       <button class="btn btn-sm btn-primary btn-full" onclick="saveBio()">Save</button>
