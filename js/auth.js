@@ -39,8 +39,13 @@ async function registerUser(name,password,imageBlob){
     const userData={
       userId,
       name,
+      username:'user_'+(userId||'').slice(-6),
       passwordHash,
       profileImage,
+      bio:'',
+      age:'',
+      maritalStatus:'unmarried',
+      gender:'male',
       onlineStatus:true,
       lastSeen:Date.now(),
       createdAt:Date.now(),

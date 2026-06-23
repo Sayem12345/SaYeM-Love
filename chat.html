@@ -48,7 +48,7 @@
 
 <div class="chat-input-wrap">
   <div class="chat-input-field">
-    <textarea class="chat-input-text" id="chatInput" placeholder="Message..." rows="1" oninput="autoResize(this);setTyping(CId,this.value.length>0)" onkeydown="handleKey(event)"></textarea>
+    <textarea class="chat-input-text" id="chatInput" placeholder="Type a message..." rows="1" oninput="autoResize(this);handleInput()" onkeydown="handleKey(event)"></textarea>
     <div class="chat-input-actions"><button class="chat-action-btn" onclick="document.getElementById('imgInput').click()"><i class="fa-solid fa-camera"></i></button></div>
   </div>
   <button class="chat-send" id="sendBtn" onclick="sendMsg()" disabled><i class="fa-solid fa-paper-plane"></i></button>
@@ -255,10 +255,23 @@ async function sendMsg(){
     await sendMessage(CId,t,'text','',reply);
     reply=null;cancelReply();
   }
-  i.value='';autoResize(i);setTyping(CId,false);document.getElementById('sendBtn').disabled=true;
+  i.value='';autoResize(i);handleInput();document.getElementById('sendBtn').disabled=true;
 }
-function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg()};document.getElementById('sendBtn').disabled=!e.target.value.trim()}
-function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,110)+'px'}
+function handleKey(e){
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg()}
+  handleInput();
+}
+function handleInput(){
+  const el=document.getElementById('chatInput');
+  document.getElementById('sendBtn').disabled=!el.value.trim();
+}
+let _tDelay=null;
+function autoResize(el){
+  el.style.height='auto';
+  el.style.height=Math.min(Math.max(el.scrollHeight,22),110)+'px';
+  clearTimeout(_tDelay);
+  _tDelay=setTimeout(()=>setTyping(CId,el.value.length>0),500);
+}
 
 async function handleImage(ev){
   const f=ev.target.files[0];if(!f||f.size>5*1024*1024){toast('Image too large','error');return}

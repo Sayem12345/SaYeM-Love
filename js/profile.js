@@ -7,6 +7,9 @@ async function loadProfile(userId){
     const $name=document.getElementById('profileName');
     const $username=document.getElementById('profileUsername');
     const $bio=document.getElementById('profileBio');
+    const $age=document.getElementById('profileAge');
+    const $marital=document.getElementById('profileMarital');
+    const $gender=document.getElementById('profileGender');
     const $friends=document.getElementById('profileFriends');
     const $chats=document.getElementById('profileChats');
     if($img){
@@ -14,10 +17,12 @@ async function loadProfile(userId){
       else $img.src='';
     }
     if($name)$name.textContent=user.name||'User';
-    if($username)$username.textContent='@'+(user.userId||'').slice(-6);
+    if($username)$username.textContent='@'+(user.username||(user.userId||'').slice(-6));
     if($bio)$bio.textContent=user.bio||'No bio yet';
+    if($age)$age.textContent=user.age||'-';
+    if($marital)$marital.textContent=user.maritalStatus==='married'?'Married':'Unmarried';
+    if($gender)$gender.textContent=user.gender==='female'?'Female':'Male';
     if($friends){
-      // Count friends (chats with this user)
       try{
         const snap=await REFS.chats.once('value');
         let count=0;
@@ -41,28 +46,6 @@ async function loadProfile(userId){
     }
     return user;
   }catch(e){return null}
-}
-
-// ===== UPDATE PROFILE =====
-async function updateProfile(data){
-  const uid=localStorage.getItem('uid');
-  if(!uid)return;
-  try{
-    await REFS.users.child(uid).update(data);
-    toast('Profile updated','success');
-    return true;
-  }catch(e){toast('Update failed','error');return false}
-}
-
-// ===== UPDATE PROFILE IMAGE =====
-async function updateProfileImage(blob,onProgress){
-  const uid=localStorage.getItem('uid');
-  if(!uid)return;
-  try{
-    const url=await ghUpload('uploads/profiles/'+uid+'.jpg',blob,'Profile update',onProgress);
-    await updateProfile({profileImage:url});
-    return url;
-  }catch(e){toast('Image upload failed','error');return null}
 }
 
 // ===== LOAD OWN PROFILE =====

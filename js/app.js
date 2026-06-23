@@ -124,25 +124,43 @@ async function updateProfileImage(blob,onProgress){
 
 // ===== SOUNDS =====
 const SOUNDS={};
-function initSounds(){
-  const ctx=new(window.AudioContext||window.webkitAudioContext);
-  function createTone(freq,duration,type='sine',volume=0.3){
+let _sndCtx=null;
+function getSndCtx(){
+  if(!_sndCtx)_sndCtx=new(window.AudioContext||window.webkitAudioContext);
+  if(_sndCtx.state==='suspended')_sndCtx.resume();
+  return _sndCtx;
+}
+function playTone(freq,dur,type='sine',vol=0.3,delay=0){
+  try{
+    const ctx=getSndCtx();
     const osc=ctx.createOscillator();
     const gain=ctx.createGain();
     osc.type=type;
-    osc.frequency.value=freq;
-    gain.gain.setValueAtTime(volume,ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+duration);
+    osc.frequency.setValueAtTime(freq,ctx.currentTime+delay);
+    gain.gain.setValueAtTime(vol,ctx.currentTime+delay);
+    gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+delay+dur);
     osc.connect(gain);
     gain.connect(ctx.destination);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime+duration);
-  }
-  function shouldPlay(){return localStorage.getItem('sound')!=='off'}
-  SOUNDS.send=()=>{if(shouldPlay())createTone(800,0.1,'sine',0.2)};
-  SOUNDS.receive=()=>{if(shouldPlay()){createTone(600,0.08,'sine',0.15);setTimeout(()=>createTone(800,0.08,'sine',0.15),80)}};
-  SOUNDS.notification=()=>{if(shouldPlay()){createTone(523,0.15,'sine',0.2);setTimeout(()=>createTone(659,0.15,'sine',0.2),150);setTimeout(()=>createTone(784,0.2,'sine',0.2),300)}};
+    osc.start(ctx.currentTime+delay);
+    osc.stop(ctx.currentTime+delay+dur);
+  }catch(e){}
 }
+function playSfx(notes){
+  notes.forEach(n=>playTone(n[0],n[1],n[2]||'sine',n[3]||0.25,n[4]||0));
+}
+function shouldPlay(){return localStorage.getItem('sound')!=='off'}
+SOUNDS.send=()=>{
+  if(!shouldPlay())return;
+  playSfx([[600,0.04,'sine',0.15],[900,0.06,'sine',0.12,0.04]]);
+};
+SOUNDS.receive=()=>{
+  if(!shouldPlay())return;
+  playSfx([[523,0.06,'sine',0.15,0],[659,0.08,'sine',0.15,0.06],[784,0.1,'sine',0.12,0.12]]);
+};
+SOUNDS.notification=()=>{
+  if(!shouldPlay())return;
+  playSfx([[440,0.12,'triangle',0.2,0],[660,0.12,'triangle',0.2,0.12],[880,0.15,'triangle',0.15,0.24]]);
+};
 document.addEventListener('DOMContentLoaded',initSounds);
 
 // ===== ANDROID BACK BUTTON =====

@@ -79,28 +79,33 @@
 
   <!-- ===== TAB: PROFILE ===== -->
   <div class="tab-content" id="tabProfile">
-    <div class="profile-tab" id="profileTabContent">
-      <div class="profile-card">
-        <div style="position:relative;cursor:pointer" onclick="document.getElementById('profileUpload').click()">
-          <img id="pfpImg" src="" class="avatar avatar-xxl" alt="" style="display:none">
-          <div id="pfpPlaceholder" class="avatar avatar-xxl avatar-placeholder" style="font-size:44px">?</div>
+    <div class="profile-tab" id="profileTabContent" style="overflow-y:auto;flex:1">
+      <!-- AVATAR -->
+      <div style="text-align:center;margin-bottom:12px;padding-top:8px">
+        <div style="position:relative;cursor:pointer;display:inline-block" onclick="document.getElementById('profileUpload').click()">
+          <img id="hPfpImg" src="" class="avatar avatar-xxl" alt="" style="display:none">
+          <div id="hPfpPl" class="avatar avatar-xxl avatar-placeholder" style="font-size:44px">?</div>
           <div style="position:absolute;bottom:4px;right:4px;width:30px;height:30px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid var(--bg)"><i class="fa-solid fa-camera"></i></div>
         </div>
-        <div class="profile-name" id="pfpName">User</div>
-        <div class="profile-username" id="pfpUsername">@user</div>
-        <div class="profile-bio" id="pfpBio">No bio yet</div>
-        <div class="profile-stats">
-          <div class="profile-stat"><div class="profile-stat-num" id="pfpFriends">0</div><div class="profile-stat-label">Chats</div></div>
-          <div class="profile-stat"><div class="profile-stat-num" id="pfpDays">0</div><div class="profile-stat-label">Days</div></div>
-        </div>
-        <div class="profile-actions">
-          <button class="btn btn-ghost btn-full" onclick="document.getElementById('bioField').style.display='block';this.style.display='none'"><i class="fa-solid fa-pen"></i> Edit Bio</button>
-          <div id="bioField" style="display:none;width:100%">
-            <div class="input-group"><input type="text" class="input-field" id="bioInput" placeholder="Write your bio..." maxlength="100"></div>
-            <button class="btn btn-sm btn-primary btn-full" onclick="saveBio()">Save</button>
-          </div>
-        </div>
+        <div id="hUploadProg" class="upload-progress upload-progress-avatar" style="display:none"><div class="upload-progress-bar" style="width:0%"></div></div>
       </div>
+
+      <!-- FIELDS -->
+      <div class="profile-card" style="margin:0 4px 12px">
+        <div class="profile-field-row"><div class="profile-field-label"><i class="fa-solid fa-user"></i> Name</div><div class="profile-field-value" id="hName">-</div><button class="profile-field-edit" onclick="openHomeEdit('name')"><i class="fa-solid fa-pen"></i></button></div>
+        <div class="profile-field-row"><div class="profile-field-label"><i class="fa-solid fa-at"></i> Username</div><div class="profile-field-value" id="hUsername">-</div><button class="profile-field-edit" onclick="openHomeEdit('username')"><i class="fa-solid fa-pen"></i></button></div>
+        <div class="profile-field-row"><div class="profile-field-label"><i class="fa-solid fa-info-circle"></i> Bio</div><div class="profile-field-value" id="hBio">-</div><button class="profile-field-edit" onclick="openHomeEdit('bio')"><i class="fa-solid fa-pen"></i></button></div>
+        <div class="profile-field-row"><div class="profile-field-label"><i class="fa-solid fa-cake-candles"></i> Age</div><div class="profile-field-value" id="hAge">-</div><button class="profile-field-edit" onclick="openHomeEdit('age')"><i class="fa-solid fa-pen"></i></button></div>
+        <div class="profile-field-row"><div class="profile-field-label"><i class="fa-solid fa-heart"></i> Marital</div><div class="profile-field-value" id="hMarital">-</div><button class="profile-field-edit" onclick="openHomeEdit('marital')"><i class="fa-solid fa-pen"></i></button></div>
+        <div class="profile-field-row"><div class="profile-field-label"><i class="fa-solid fa-venus-mars"></i> Gender</div><div class="profile-field-value" id="hGender">-</div><button class="profile-field-edit" onclick="openHomeEdit('gender')"><i class="fa-solid fa-pen"></i></button></div>
+      </div>
+
+      <!-- STATS -->
+      <div style="display:flex;gap:28px;padding:14px 0;justify-content:center;border-top:1px solid var(--glass-border);border-bottom:1px solid var(--glass-border);margin:0 8px 12px">
+        <div style="text-align:center"><div style="font-size:19px;font-weight:800;color:var(--primary)" id="hChats">0</div><div style="font-size:12px;color:var(--text3)">Chats</div></div>
+        <div style="text-align:center"><div style="font-size:19px;font-weight:800;color:var(--primary)" id="hDays">0</div><div style="font-size:12px;color:var(--text3)">Days</div></div>
+      </div>
+      <div style="text-align:center;padding:4px 0 16px;font-size:12px;color:var(--text3)">Tap <i class="fa-solid fa-pen" style="color:var(--primary)"></i> to edit any field</div>
     </div>
   </div>
 
@@ -212,8 +217,18 @@
   </div>
 </div>
 
+<!-- PROFILE EDIT MODAL -->
+<div class="modal-overlay" id="hEditModal">
+  <div class="modal">
+    <div class="modal-title" id="hEditTitle">Edit</div>
+    <div id="hEditBody"></div>
+    <button class="btn btn-primary btn-full" onclick="saveHomeEdit()" id="hEditSaveBtn">Save</button>
+    <button class="btn btn-ghost btn-full" onclick="closeModal('hEditModal')" style="margin-top:8px">Cancel</button>
+  </div>
+</div>
+
 <!-- IMAGE UPLOAD -->
-<input type="file" id="profileUpload" accept="image/*" style="display:none" onchange="handlePfpChange(event)">
+<input type="file" id="profileUpload" accept="image/*" style="display:none" onchange="changeHomePfp(event)">
 
 <script src="js/firebase.js"></script>
 <script src="js/app.js"></script>
@@ -397,49 +412,93 @@ async function startChatWith(id){
 }
 
 // ===== PROFILE TAB =====
+let _hEditField=null,_hEditVal=null;
+
 function loadTabProfile(){
   const uid=localStorage.getItem('uid');
   if(!uid)return;
   REFS.users.child(uid).once('value',snap=>{
     const u=snap.val();
     if(!u)return;
-    const img=document.getElementById('pfpImg');
-    const pl=document.getElementById('pfpPlaceholder');
+    const img=document.getElementById('hPfpImg');
+    const pl=document.getElementById('hPfpPl');
     if(u.profileImage){img.src=u.profileImage;img.style.display='block';pl.style.display='none'}
     else{img.style.display='none';pl.style.display='flex';pl.textContent=u.name[0]}
-    document.getElementById('pfpName').textContent=u.name||'User';
-    document.getElementById('pfpUsername').textContent='@'+(u.userId||'').slice(-6);
-    document.getElementById('pfpBio').textContent=u.bio||'No bio yet';
+    document.getElementById('hName').textContent=u.name||'-';
+    document.getElementById('hUsername').textContent='@'+(u.username||(u.userId||'').slice(-6));
+    document.getElementById('hBio').textContent=u.bio||'No bio yet';
+    document.getElementById('hAge').textContent=u.age||'-';
+    document.getElementById('hMarital').textContent=u.maritalStatus==='married'?'Married':'Unmarried';
+    document.getElementById('hGender').textContent=u.gender==='female'?'Female':'Male';
     const days=Math.floor((Date.now()-(u.createdAt||Date.now()))/86400000);
-    document.getElementById('pfpDays').textContent=days||1;
-    // Count unique chats
-    REFS.chats.once('value',s=>{let c=0;s.forEach(ch=>{if(ch.val().participants&&ch.val().participants[uid])c++});document.getElementById('pfpFriends').textContent=c});
+    document.getElementById('hDays').textContent=days||1;
+    REFS.chats.once('value',s=>{let c=0;s.forEach(ch=>{if(ch.val().participants&&ch.val().participants[uid])c++});document.getElementById('hChats').textContent=c-1||0});
   });
 }
 
-async function saveBio(){
-  const bio=document.getElementById('bioInput').value.trim();
-  if(!bio){toast('Enter a bio','error');return}
-  await updateProfile({bio});
-  document.getElementById('pfpBio').textContent=bio;
-  document.getElementById('bioField').style.display='none';
-  document.querySelector('.profile-actions .btn-ghost').style.display='block';
-  toast('Bio saved','success');
+function openHomeEdit(field){
+  _hEditField=field;
+  const labels={name:'Name',username:'Username',bio:'Bio',age:'Age',marital:'Marital Status',gender:'Gender'};
+  document.getElementById('hEditTitle').textContent='Edit '+labels[field];
+  const body=document.getElementById('hEditBody');
+  body.innerHTML='';
+  if(field==='marital'){
+    body.innerHTML=`<div style="display:flex;gap:10px;margin-bottom:14px"><button class="btn" data-v="unmarried" onclick="hSelectMarital('unmarried')" style="flex:1;border-radius:var(--radius-btn);padding:12px"><i class="fa-solid fa-heart"></i> Unmarried</button><button class="btn" data-v="married" onclick="hSelectMarital('married')" style="flex:1;border-radius:var(--radius-btn);padding:12px"><i class="fa-solid fa-heart"></i> Married</button></div>`;
+    _hEditVal=document.getElementById('hMarital').textContent==='Married'?'married':'unmarried';
+    hHighlightMarital();
+  }else if(field==='gender'){
+    body.innerHTML=`<div style="display:flex;gap:10px;margin-bottom:14px"><button class="btn" data-v="male" onclick="hSelectGender('male')" style="flex:1;border-radius:var(--radius-btn);padding:12px"><i class="fa-solid fa-mars"></i> Male</button><button class="btn" data-v="female" onclick="hSelectGender('female')" style="flex:1;border-radius:var(--radius-btn);padding:12px"><i class="fa-solid fa-venus"></i> Female</button></div>`;
+    _hEditVal=document.getElementById('hGender').textContent==='Female'?'female':'male';
+    hHighlightGender();
+  }else{
+    const ph={name:'Your name',username:'Username',bio:'Write your bio...',age:'Your age'};
+    const cur={name:document.getElementById('hName').textContent,username:document.getElementById('hUsername').textContent.replace('@',''),bio:document.getElementById('hBio').textContent==='No bio yet'?'':document.getElementById('hBio').textContent,age:document.getElementById('hAge').textContent==='-'?'':document.getElementById('hAge').textContent};
+    const inputType=field==='age'?'number':'text';
+    const maxLen=field==='bio'?'100':field==='age'?'3':'50';
+    body.innerHTML=`<div class="input-group"><input type="${inputType}" class="input-field" id="hEditInput" placeholder="${ph[field]}" maxlength="${maxLen}" value="${escapeHtml(cur[field])}"></div>`;
+    _hEditVal=cur[field];
+    setTimeout(()=>{const el=document.getElementById('hEditInput');if(el){el.focus();el.select()}},200);
+  }
+  document.getElementById('hEditSaveBtn').textContent='Save';
+  document.getElementById('hEditModal').classList.add('active');
 }
 
-async function handlePfpChange(e){
-  const f=e.target.files[0];if(!f)return;
-  if(f.size>5*1024*1024){toast('Image too large','error');return}
-  const wrap=document.querySelector('#tabProfile .profile-card > div:first-child');
-  const prog=document.createElement('div');prog.className='upload-progress upload-progress-avatar';
-  const bar=document.createElement('div');bar.className='upload-progress-bar';bar.style.width='0%';
-  prog.appendChild(bar);wrap.after(prog);
-  const url=await updateProfileImage(f,(loaded,total)=>{
-    const pct=Math.min(100,Math.round(loaded/total*100));
-    bar.style.width=pct+'%';
+function hSelectMarital(v){_hEditVal=v;hHighlightMarital()}
+function hHighlightMarital(){document.querySelectorAll('#hEditBody button[data-v]').forEach(b=>{b.className='btn btn-ghost';if(b.dataset.v===_hEditVal)b.className='btn btn-primary'})}
+function hSelectGender(v){_hEditVal=v;hHighlightGender()}
+function hHighlightGender(){document.querySelectorAll('#hEditBody button[data-v]').forEach(b=>{b.className='btn btn-ghost';if(b.dataset.v===_hEditVal)b.className='btn btn-primary'})}
+
+async function saveHomeEdit(){
+  const btn=document.getElementById('hEditSaveBtn');
+  btn.disabled=true;btn.textContent='Saving...';
+  let val=_hEditVal;
+  if(_hEditField!=='marital'&&_hEditField!=='gender'){
+    val=document.getElementById('hEditInput').value.trim();
+    if(!val){toast('Please enter a value','error');btn.disabled=false;btn.textContent='Save';return}
+    if(_hEditField==='age'){const n=parseInt(val);if(isNaN(n)||n<1||n>150){toast('Enter a valid age (1-150)','error');btn.disabled=false;btn.textContent='Save';return}}
+  }
+  const data={};
+  if(_hEditField==='name')data.name=val;
+  else if(_hEditField==='username')data.username=val;
+  else if(_hEditField==='bio')data.bio=val;
+  else if(_hEditField==='age')data.age=val;
+  else if(_hEditField==='marital')data.maritalStatus=val;
+  else if(_hEditField==='gender')data.gender=val;
+  await updateProfile(data);
+  closeModal('hEditModal');
+  loadTabProfile();
+  btn.disabled=false;btn.textContent='Save';
+}
+
+async function changeHomePfp(e){
+  const f=e.target.files[0];if(!f||f.size>5*1024*1024){toast('Image too large','error');return}
+  const prog=document.getElementById('hUploadProg');prog.style.display='block';const bar=prog.querySelector('.upload-progress-bar');bar.style.width='0%';
+  updateProfileImage(f,(loaded,total)=>{
+    bar.style.width=Math.min(100,Math.round(loaded/total*100))+'%';
+  }).then(url=>{
+    if(url){bar.style.width='100%';setTimeout(()=>{prog.style.display='none'},600);document.getElementById('hPfpImg').src=url;document.getElementById('hPfpImg').style.display='block';document.getElementById('hPfpPl').style.display='none'}
+    else{prog.style.display='none';toast('Upload failed','error')}
   });
-  if(url){bar.classList.add('done');setTimeout(()=>prog.remove(),600);document.getElementById('pfpImg').src=url;document.getElementById('pfpImg').style.display='block';document.getElementById('pfpPlaceholder').style.display='none'}
-  else{prog.remove();toast('Upload failed','error')}
 }
 
 // ===== SETTINGS TAB =====
