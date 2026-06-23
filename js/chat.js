@@ -36,7 +36,12 @@ async function sendMessage(chatId,text,type='text',imageUrl='',replyTo=null){
     type,
     timestamp:Date.now(),
     seen:false,
-    delivered:false
+    delivered:false,
+    edited:false,
+    deleted:null,
+    pinned:false,
+    starred:false,
+    reactions:{}
   };
   if(imageUrl)msg.imageUrl=imageUrl;
   if(replyTo)msg.replyTo=replyTo;
@@ -47,7 +52,9 @@ async function sendMessage(chatId,text,type='text',imageUrl='',replyTo=null){
       lastSender:myId,
       lastTime:Date.now()
     });
-    // Send push notification to partner
+    // Mark as delivered for sender
+    await REFS.messages.child(chatId).child(msgId).update({delivered:true});
+    // Send push notification
     const chatSnap=await REFS.chats.child(chatId).once('value');
     const participants=chatSnap.val().participants;
     const partnerId=Object.keys(participants).find(p=>p!==myId);
@@ -55,10 +62,24 @@ async function sendMessage(chatId,text,type='text',imageUrl='',replyTo=null){
       const userSnap=await REFS.users.child(partnerId).once('value');
       const partner=userSnap.val();
       if(partner&&partner.fcmToken){
-        sendPushNotification(partner.fcmToken,currentUser?.name||'SEVEN User',text||'Sent an image',chatId);
+        try{
+          await fetch('https://fcm.googleapis.com/fcm/send',{
+            method:'POST',
+            headers:{
+              'Authorization':'key=AAAAz3E_kaQ:APA91bFhHNjNKb7r3Ghr6X6r0yf8MpYDuf22GA2Z2NR8AmrSJ2Cx9dNQdBQlrh9Sh7vXs3O6MqD_HJxpJBmhT7nGH3M80A_LBYonXg8lBcPP1BJC3YVYMB-KyH7q7UXVKjNjnl4YZXtBLjL05_V_NrT32V8XlQ9Jhg',
+              'Content-Type':'application/json'
+            },
+            body:JSON.stringify({
+              to:partner.fcmToken,
+              notification:{title:currentUser?.name||'SEVEN',body:text||'📷 Image',sound:'default'},
+              data:{chatId}
+            })
+          });
+        }catch(e){}
       }
     }
     if(SOUNDS.send)SOUNDS.send();
+    if(localStorage.getItem('vibrate')!=='off')try{navigator.vibrate(20)}catch(e){}
     return msgId;
   }catch(e){toast('Send failed','error')}
 }
@@ -69,9 +90,16 @@ function listenMessages(chatId,callback){
   const ref=REFS.messages.child(chatId).orderByChild('timestamp').limitToLast(100);
   const listener=ref.on('value',snap=>{
     const msgs=[];
+    const myId=uid();
+    const updates={};
     snap.forEach(child=>{
-      msgs.push({id:child.key,...child.val()});
+      const m=child.val();
+      if(m&&!m.deleted)msgs.push({id:child.key,...m});
+      else if(m&&m.deleted)msgs.push({id:child.key,...m});
+      // Mark as delivered if from partner
+      if(m&&m.senderId!==myId&&!m.delivered)updates[child.key+'/delivered']=true;
     });
+    if(Object.keys(updates).length)REFS.messages.child(chatId).update(updates);
     callback(msgs);
   });
   messageListeners[chatId]=()=>ref.off('value',listener);
@@ -84,12 +112,13 @@ function stopMessageListener(chatId){
 // ===== MARK SEEN =====
 async function markSeen(chatId){
   const myId=uid();
-  if(!myId||!chatId)return;
+  if(!myId||!chatId||localStorage.getItem('readReceipts')==='off')return;
   try{
-    const snap=await REFS.messages.child(chatId).orderByChild('senderId').equalTo(myId).once('value');
+    const snap=await REFS.messages.child(chatId).once('value');
     const updates={};
     snap.forEach(child=>{
-      if(!child.val().seen)updates[child.key+'/seen']=true;
+      const m=child.val();
+      if(m&&m.senderId!==myId&&!m.seen)updates[child.key+'/seen']=true;
     });
     if(Object.keys(updates).length)await REFS.messages.child(chatId).update(updates);
   }catch(e){}
@@ -122,7 +151,7 @@ function listenChatList(callback){
   const myId=uid();
   if(!myId)return;
   REFS.chats.on('value',async snap=>{
-    const chats=[];
+    const chats=[],archived=[];
     const promises=[];
     snap.forEach(child=>{
       const chat=child.val();
@@ -130,7 +159,7 @@ function listenChatList(callback){
         const partnerId=Object.keys(chat.participants).find(p=>p!==myId);
         const p=REFS.users.child(partnerId).once('value').then(userSnap=>{
           const user=userSnap.val();
-          chats.push({
+          const item={
             id:child.key,
             partnerId,
             partnerName:user?.name||'Unknown',
@@ -138,15 +167,34 @@ function listenChatList(callback){
             partnerOnline:user?.onlineStatus||false,
             lastMessage:chat.lastMessage||'',
             lastSender:chat.lastSender||'',
-            lastTime:chat.lastTime||0
-          });
+            lastTime:chat.lastTime||0,
+            pinned:chat.pinned||false,
+            archived:chat.archived||false,
+            _unread:0
+          };
+          if(chat.archived)archived.push(item);else chats.push(item);
         });
         promises.push(p);
       }
     });
     await Promise.all(promises);
+    // Compute unread counts
+    const all=[...chats,...archived];
+    const unreadPromises=all.map(item=>
+      REFS.messages.child(item.id).orderByChild('senderId').once('value').then(msgSnap=>{
+        msgSnap.forEach(msg=>{
+          const m=msg.val();
+          if(m.senderId!==myId&&!m.seen)item._unread++;
+        });
+      })
+    );
+    await Promise.all(unreadPromises);
     chats.sort((a,b)=>b.lastTime-a.lastTime);
-    callback(chats);
+    archived.sort((a,b)=>b.lastTime-a.lastTime);
+    // Pinned at top
+    const pinned=chats.filter(c=>c.pinned);
+    const unpinned=chats.filter(c=>!c.pinned);
+    callback([...pinned,...unpinned],archived);
   });
 }
 
@@ -165,29 +213,27 @@ function listenOnlineUsers(callback){
   });
 }
 
-// ===== SEND PUSH =====
-async function sendPushNotification(token,title,body,chatId){
-  try{
-    const resp=await fetch('https://fcm.googleapis.com/fcm/send',{
-      method:'POST',
-      headers:{
-        'Authorization':'key=AAAAz3E_kaQ:APA91bFhHNjNKb7r3Ghr6X6r0yf8MpYDuf22GA2Z2NR8AmrSJ2Cx9dNQdBQlrh9Sh7vXs3O6MqD_HJxpJBmhT7nGH3M80A_LBYonXg8lBcPP1BJCY3VYMB-KyH7q7UXVKjNjnl4YZXtBLjL05_V_NrT32V8XlQ9Jhg',
-        'Content-Type':'application/json'
-      },
-      body:JSON.stringify({
-        to:token,
-        notification:{title,body,sound:'default',click_action:'.'+chatId},
-        data:{chatId,click_action:'.'+chatId}
-      })
+// ===== GET CHATS FOR FORWARD =====
+function getMyChats(callback){
+  const myId=uid();
+  if(!myId)return;
+  REFS.chats.once('value',async snap=>{
+    const chats=[];
+    const promises=[];
+    snap.forEach(child=>{
+      const chat=child.val();
+      if(chat.participants&&chat.participants[myId]){
+        const partnerId=Object.keys(chat.participants).find(p=>p!==myId);
+        const p=REFS.users.child(partnerId).once('value').then(uSnap=>{
+          const u=uSnap.val();
+          if(u)chats.push({id:child.key,partnerId,partnerName:u.name||'Unknown',partnerImage:u.profileImage||''});
+        });
+        promises.push(p);
+      }
     });
-  }catch(e){}
-}
-
-// ===== DELETE MESSAGE =====
-async function deleteMessage(chatId,msgId){
-  try{
-    await REFS.messages.child(chatId).child(msgId).remove();
-  }catch(e){toast('Delete failed','error')}
+    await Promise.all(promises);
+    callback(chats);
+  });
 }
 
 // ===== IMAGE UPLOAD =====

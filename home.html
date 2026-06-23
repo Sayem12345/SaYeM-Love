@@ -26,6 +26,8 @@
 
   <!-- ===== TAB: CHATS ===== -->
   <div class="tab-content active" id="tabChats">
+    <div id="archiveToggle" class="archive-toggle" onclick="toggleArchiveSection()" style="display:none">📦 <span>Archived chats</span> <span id="archiveCount" style="color:var(--text3);font-size:13px;margin-left:4px"></span> <span style="margin-left:auto;font-size:11px;color:var(--text3)">▸</span></div>
+    <div id="archivedSection" style="display:none"><div class="chat-list" id="archivedList"></div></div>
     <div id="chatsList" class="chat-list"></div>
     <div id="chatsEmpty" class="empty" style="display:none">
       <div class="empty-icon">💬</div>
@@ -103,6 +105,18 @@
         <div class="settings-row" onclick="toggleSound()">
           <div class="settings-row-left"><div class="settings-row-icon green">🔊</div><div><div class="settings-row-label">Sound</div><div class="settings-row-desc">Message notification sounds</div></div></div>
           <div class="toggle active" id="soundToggle"><div class="toggle-knob"></div></div>
+        </div>
+        <div class="settings-row" onclick="toggleReadReceipts()">
+          <div class="settings-row-left"><div class="settings-row-icon blue">👁️</div><div><div class="settings-row-label">Read Receipts</div><div class="settings-row-desc">Let others see when you read</div></div></div>
+          <div class="toggle active" id="rrToggle"><div class="toggle-knob"></div></div>
+        </div>
+        <div class="settings-row" onclick="toggleVibrate()">
+          <div class="settings-row-left"><div class="settings-row-icon cyan">📳</div><div><div class="settings-row-label">Vibrate</div><div class="settings-row-desc">Haptic feedback on messages</div></div></div>
+          <div class="toggle active" id="vibToggle"><div class="toggle-knob"></div></div>
+        </div>
+        <div class="settings-row" onclick="toggleAnim()">
+          <div class="settings-row-left"><div class="settings-row-icon green">✨</div><div><div class="settings-row-label">Animations</div><div class="settings-row-desc">UI animations and transitions</div></div></div>
+          <div class="toggle active" id="animToggle"><div class="toggle-knob"></div></div>
         </div>
       </div>
       <div class="settings-group">
@@ -193,7 +207,10 @@
 <script src="js/search.js"></script>
 <script src="js/notifications.js"></script>
 <script>
+function escapeHtml(t){const d=document.createElement('div');d.textContent=t;return d.innerHTML}
+
 let unsubChats=null,unsubActive=null,unsubUnread=null;
+let _allChats=[],_allArchived=[];
 
 document.addEventListener('DOMContentLoaded',()=>{
   if(!isLoggedIn()){goTo('login.html');return}
@@ -204,6 +221,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   loadChatList();
   loadActiveUsers();
   loadUnread();
+  if(localStorage.getItem('anim')==='off')document.body.classList.add('no-anim');
 });
 
 function switchTab(id){
@@ -218,32 +236,81 @@ function switchTab(id){
 // ===== CHATS TAB =====
 function loadChatList(){
   if(unsubChats)unsubChats();
-  unsubChats=listenChatList(chats=>{
-    const c=document.getElementById('chatsList');
-    const e=document.getElementById('chatsEmpty');
-    c.innerHTML='';
-    if(!chats.length){c.style.display='none';e.style.display='flex';return}
-    c.style.display='block';e.style.display='none';
-    chats.forEach(chat=>{
-      const d=document.createElement('div');
-      d.className='chat-item';
-      d.innerHTML=`
-        <div style="position:relative;flex-shrink:0">
-          ${chat.partnerImage?`<img class="avatar" src="${chat.partnerImage}" alt="">`:`<div class="avatar avatar-placeholder" style="font-size:18px">${chat.partnerName[0]}</div>`}
-          ${chat.partnerOnline?'<div class="online-dot"></div>':''}
-        </div>
-        <div class="chat-item-info">
-          <div class="chat-item-name">${escapeHtml(chat.partnerName)}</div>
-          <div class="chat-item-preview">${chat.lastSender===uid()?'You: ':''}${escapeHtml(chat.lastMessage||'Start chatting')}</div>
-        </div>
-        <div class="chat-item-right">
-          <div class="chat-item-time">${formatTime(chat.lastTime)}</div>
-        </div>
-      `;
-      d.onclick=()=>goTo('chat.html?id='+chat.id+'&partner='+chat.partnerId);
-      c.appendChild(d);
-    });
+  unsubChats=listenChatList((chats,archived)=>{
+    _allChats=chats;_allArchived=archived;
+    renderChats();
+    renderArchived();
   });
+}
+function renderChats(){
+  const c=document.getElementById('chatsList');
+  const e=document.getElementById('chatsEmpty');
+  c.innerHTML='';
+  if(!_allChats.length){c.style.display='none';e.style.display='flex';return}
+  c.style.display='block';e.style.display='none';
+  _allChats.forEach(chat=>{
+    c.appendChild(createChatItem(chat,false));
+  });
+}
+function createChatItem(chat,isArchived){
+  const d=document.createElement('div');
+  d.className='chat-item'+(chat.pinned?' pinned':'');
+  let avatar=chat.partnerImage?`<img class="avatar" src="${chat.partnerImage}" alt="">`:`<div class="avatar avatar-placeholder" style="font-size:18px">${(chat.partnerName||'?')[0]}</div>`;
+  let unreadB='';
+  // Check unread
+  const my=uid();
+  if(chat._unread>0)unreadB=`<span class="unread-badge-sm">${chat._unread>99?'99+':chat._unread}</span>`;
+  d.innerHTML=`
+    ${chat.pinned?'<div class="chat-pin-icon">📌</div>':''}
+    <div style="position:relative;flex-shrink:0">${avatar}${chat.partnerOnline?'<div class="online-dot"></div>':''}${unreadB}</div>
+    <div class="chat-item-info">
+      <div class="chat-item-name">${escapeHtml(chat.partnerName)}</div>
+      <div class="chat-item-preview">${chat.lastSender===my?'You: ':''}${escapeHtml(chat.lastMessage||'Start chatting')}</div>
+    </div>
+    <div class="chat-item-right">
+      <div class="chat-item-time">${chat.lastTime?formatTime(chat.lastTime):''}</div>
+    </div>
+  `;
+  d.onclick=()=>goTo('chat.html?id='+chat.id+'&partner='+chat.partnerId);
+  // Long press
+  let lt;d.addEventListener('mousedown',()=>{lt=setTimeout(()=>showChatContext(chat.id,chat.partnerName,isArchived),400)});
+  d.addEventListener('mouseup',()=>clearTimeout(lt));d.addEventListener('mouseleave',()=>clearTimeout(lt));
+  d.addEventListener('touchstart',()=>{lt=setTimeout(()=>showChatContext(chat.id,chat.partnerName,isArchived),400)});
+  d.addEventListener('touchend',()=>clearTimeout(lt));
+  return d;
+}
+function renderArchived(){
+  const sec=document.getElementById('archivedSection');
+  const tog=document.getElementById('archiveToggle');
+  if(!_allArchived.length){sec.style.display='none';tog.style.display='none';return}
+  tog.style.display='flex';
+  document.getElementById('archiveCount').textContent='('+_allArchived.length+')';
+  const l=document.getElementById('archivedList');l.innerHTML='';
+  _allArchived.forEach(chat=>{l.appendChild(createChatItem(chat,true))});
+}
+function toggleArchiveSection(){
+  const s=document.getElementById('archivedSection');
+  s.style.display=s.style.display==='none'?'block':'none';
+}
+function showChatContext(chatId,partnerName,isArchived){
+  const ov=document.createElement('div');ov.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;z-index:199;background:rgba(0,0,0,.3)';ov.onclick=()=>{menu.remove();ov.remove()};
+  const menu=document.createElement('div');menu.style.cssText='position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-radius:14px 14px 0 0;z-index:200;padding:14px;animation:fadeIn .2s ease;border-top:1px solid var(--glass-border)';
+  let btns='';
+  if(isArchived){
+    btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px" onclick="closeCtxMenu();toggleArchiveChat('${chatId}',false)">📦 Unarchive</button>`;
+  }else{
+    btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px" onclick="closeCtxMenu();togglePinChat('${chatId}')">📌 Toggle Pin</button>`;
+    btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px" onclick="closeCtxMenu();toggleArchiveChat('${chatId}',true)">📦 Archive</button>`;
+  }
+  btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px;color:var(--danger)" onclick="closeCtxMenu();deleteChatConfirm('${chatId}')">🗑️ Delete Chat</button>`;
+  btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px" onclick="closeCtxMenu()">Cancel</button>`;
+  menu.innerHTML=btns;document.body.appendChild(ov);document.body.appendChild(menu);
+  window.closeCtxMenu=()=>{menu.remove();ov.remove()};
+}
+async function deleteChatConfirm(chatId){
+  if(!confirm('Delete this conversation?'))return;
+  try{await REFS.messages.child(chatId).remove();await REFS.chats.child(chatId).update({lastMessage:'',lastTime:0,archived:false});toast('Chat deleted','success')}
+  catch(e){toast('Error','error')}
 }
 
 // ===== ACTIVE TAB =====
@@ -318,8 +385,8 @@ function loadTabProfile(){
     document.getElementById('pfpBio').textContent=u.bio||'No bio yet';
     const days=Math.floor((Date.now()-(u.createdAt||Date.now()))/86400000);
     document.getElementById('pfpDays').textContent=days||1;
-    // Count chats
-    REFS.chats.once('value',s=>{let c=0;s.forEach(ch=>{if(ch.val().participants&&ch.val().participants[uid])c++});document.getElementById('pfpFriends').textContent=c-1||0});
+    // Count unique chats
+    REFS.chats.once('value',s=>{let c=0;s.forEach(ch=>{if(ch.val().participants&&ch.val().participants[uid])c++});document.getElementById('pfpFriends').textContent=c});
   });
 }
 
@@ -345,9 +412,15 @@ function loadTabSettings(){
   const t=localStorage.getItem('theme');
   const n=localStorage.getItem('notif');
   const s=localStorage.getItem('sound');
+  const r=localStorage.getItem('readReceipts');
+  const v=localStorage.getItem('vibrate');
+  const a=localStorage.getItem('anim');
   document.getElementById('themeToggle').classList.toggle('active',t!=='light');
   document.getElementById('notifToggle').classList.toggle('active',n!=='off');
   document.getElementById('soundToggle').classList.toggle('active',s!=='off');
+  document.getElementById('rrToggle').classList.toggle('active',r!=='off');
+  document.getElementById('vibToggle').classList.toggle('active',v!=='off');
+  document.getElementById('animToggle').classList.toggle('active',a!=='off');
   if(t==='light')document.body.classList.add('light');
   updateGtStatus();
 }
@@ -372,6 +445,23 @@ function toggleSound(){
   localStorage.setItem('sound',t.classList.contains('active')?'on':'off');
 }
 
+function toggleReadReceipts(){
+  const t=document.getElementById('rrToggle');
+  t.classList.toggle('active');
+  localStorage.setItem('readReceipts',t.classList.contains('active')?'on':'off');
+}
+function toggleVibrate(){
+  const t=document.getElementById('vibToggle');
+  t.classList.toggle('active');
+  localStorage.setItem('vibrate',t.classList.contains('active')?'on':'off');
+}
+function toggleAnim(){
+  const t=document.getElementById('animToggle');
+  t.classList.toggle('active');
+  const on=t.classList.contains('active');
+  localStorage.setItem('anim',on?'on':'off');
+  document.body.classList.toggle('no-anim',!on);
+}
 function clearCache(){
   if('caches'in window){caches.keys().then(keys=>Promise.all(keys.map(k=>caches.delete(k)))).then(()=>toast('Cache cleared','success'))}
   else toast('Cache clearing not supported','error');

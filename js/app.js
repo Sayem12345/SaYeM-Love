@@ -93,6 +93,24 @@ function blobToBase64(blob){
   })
 }
 
+// ===== PROFILE =====
+async function updateProfile(data){
+  const myId=uid();
+  if(!myId)return;
+  try{await REFS.users.child(myId).update(data);toast('Profile updated','success')}
+  catch(e){toast('Update failed','error')}
+}
+async function updateProfileImage(blob){
+  const myId=uid();
+  if(!myId||!blob)return null;
+  try{
+    const url=await ghUpload('uploads/profiles/'+myId+'.jpg',blob,'Profile update');
+    if(url)await REFS.users.child(myId).update({profileImage:url});
+    toast('Photo updated','success');
+    return url;
+  }catch(e){toast('Upload failed','error');return null}
+}
+
 // ===== SOUNDS =====
 const SOUNDS={};
 function initSounds(){

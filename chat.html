@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<meta name="theme-color" content="#0F172A">
+<meta name="theme-color" content="#0B141A">
 <link rel="manifest" href="manifest.json">
 <title>SEVEN - Chat</title>
 <link rel="stylesheet" href="css/style.css">
@@ -22,23 +22,23 @@
     <div class="topbar-title" id="chatName">Loading...</div>
     <div class="topbar-sub" id="chatStatus">...</div>
   </div>
-  <button class="topbar-btn" onclick="showInfo()">ℹ️</button>
+  <button class="topbar-btn" onclick="showInfo()">⋮</button>
 </div>
 
 <div class="reply-bar" id="replyBar">
-  <div class="reply-bar-info"><div class="reply-bar-name">Replying</div><div class="reply-bar-text" id="replyText"></div></div>
+  <div class="reply-bar-info"><div class="reply-bar-name" id="replyName">Replying</div><div class="reply-bar-text" id="replyText"></div></div>
   <button class="reply-bar-cancel" onclick="cancelReply()">✕</button>
 </div>
 
 <div class="msg-container" id="msgContainer">
   <div id="msgList"></div>
-  <div id="typingIndicator" class="typing-dots" style="display:none"><span></span><span></span><span></span><span style="font-size:11px;color:var(--text3);margin-left:6px">typing...</span></div>
+  <div id="typingInd" class="typing-ind" style="display:none"><span></span><span></span><span></span><span style="font-size:11px;color:var(--text3);margin-left:6px">typing...</span></div>
 </div>
 
 <div class="chat-input-wrap">
   <button class="chat-action-btn" onclick="toggleEmoji()">😊</button>
   <div class="chat-input-field">
-    <textarea class="chat-input-text" id="chatInput" placeholder="Message..." rows="1" oninput="autoResize(this);setTyping(chatId,this.value.length>0)" onkeydown="handleKey(event)"></textarea>
+    <textarea class="chat-input-text" id="chatInput" placeholder="Message..." rows="1" oninput="autoResize(this);setTyping(CId,this.value.length>0)" onkeydown="handleKey(event)"></textarea>
     <div class="chat-input-actions"><button class="chat-action-btn" onclick="document.getElementById('imgInput').click()">📷</button></div>
   </div>
   <button class="chat-send" id="sendBtn" onclick="sendMsg()" disabled>➤</button>
@@ -47,9 +47,10 @@
 <div class="emoji-picker" id="emojiPicker"><div class="emoji-grid" id="emojiGrid"></div></div>
 <input type="file" id="imgInput" accept="image/*" style="display:none" onchange="handleImage(event)">
 
-<div class="img-viewer" id="imgViewer" onclick="closeViewer()">
-  <button class="img-viewer-close" onclick="event.stopPropagation();closeViewer()">✕</button>
+<div class="img-viewer" id="imgViewer">
+  <button class="img-viewer-close" onclick="closeViewer()">✕</button>
   <img id="viewerImg" src="" alt="">
+  <button class="img-viewer-dl" onclick="dlImg()">⬇ Download</button>
 </div>
 
 <div class="modal-overlay" id="infoModal">
@@ -58,8 +59,17 @@
     <div id="infoPl" class="avatar avatar-xl avatar-placeholder" style="margin:0 auto;font-size:32px">?</div>
     <div class="modal-title" id="infoName" style="margin-top:10px">User</div>
     <div style="color:var(--text3);font-size:14px;margin-bottom:16px" id="infoStatus">Offline</div>
-    <button class="btn btn-danger btn-full" onclick="deleteChat()">Delete Chat</button>
+    <button class="btn btn-danger btn-full" onclick="delChat()">Delete Chat</button>
     <button class="btn btn-ghost btn-full" onclick="closeModal('infoModal')" style="margin-top:8px">Close</button>
+  </div>
+</div>
+
+<!-- FORWARD MODAL -->
+<div class="modal-overlay" id="fwdModal">
+  <div class="modal"><div class="modal-title">Forward to</div>
+    <div class="search-field" style="margin-bottom:10px"><span>🔍</span><input type="text" id="fwdSearch" placeholder="Search chats..." oninput="searchFwd(this.value)"></div>
+    <div id="fwdResults" style="max-height:300px;overflow-y:auto"></div>
+    <button class="btn btn-ghost btn-full" onclick="closeModal('fwdModal')" style="margin-top:8px">Cancel</button>
   </div>
 </div>
 
@@ -68,76 +78,207 @@
 <script src="js/auth.js"></script>
 <script src="js/chat.js"></script>
 <script>
-let chatId=null,partnerId=null,partnerData=null,reply=null,msgUnsub=null;
+function escapeHtml(t){const d=document.createElement('div');d.textContent=t;return d.innerHTML}
+const REACTIONS=['❤️','👍','😂','😮','😢','🙏'];
+let CId=null,PId=null,PD=null,reply=null,editing=null;
 
 document.addEventListener('DOMContentLoaded',()=>{
   if(!isLoggedIn()){goTo('login.html');return}
   initPresence();
   const p=new URLSearchParams(window.location.search);
-  chatId=p.get('id');partnerId=p.get('partner');
-  if(!chatId||!partnerId){toast('Invalid chat','error');goTo('home.html');return}
+  CId=p.get('id');PId=p.get('partner');
+  if(!CId||!PId){toast('Invalid chat','error');goTo('home.html');return}
+  // Animations
+  if(localStorage.getItem('anim')==='off')document.body.classList.add('no-anim');
   loadPartner();
-  msgUnsub=listenMessages(chatId,msgs=>{renderMsgs(msgs);markSeen(chatId)});
-  listenTyping(chatId,()=>{const i=document.getElementById('typingIndicator');i.style.display='flex';setTimeout(()=>i.style.display='none',2000)});
-  // Emoji grid
-  const g=document.getElementById('emojiGrid');
-  EMOJIS.forEach(e=>{const b=document.createElement('button');b.textContent=e;b.onclick=()=>insertEmoji(e);g.appendChild(b)});
+  msgUnsub=listenMessages(CId,ms=>{renderMsgs(ms);markSeen(CId)});
+  listenTyping(CId,()=>{const i=document.getElementById('typingInd');i.style.display='flex';setTimeout(()=>i.style.display='none',3000)});
+  const g=document.getElementById('emojiGrid');EMOJIS.forEach(e=>{const b=document.createElement('button');b.textContent=e;b.onclick=()=>insertEmoji(e);g.appendChild(b)});
 });
 
 async function loadPartner(){
-  const u=await getUserById(partnerId);
+  const u=await getUserById(PId);
   if(!u){document.getElementById('chatName').textContent='Unknown';return}
-  partnerData=u;
-  document.getElementById('chatName').textContent=u.name;
+  PD=u;document.getElementById('chatName').textContent=u.name;
   const img=document.getElementById('chatAvatar'),pl=document.getElementById('chatAvatarPl');
-  if(u.profileImage){img.src=u.profileImage;img.style.display='block';pl.style.display='none'}
-  else{img.style.display='none';pl.style.display='flex';pl.textContent=u.name[0]}
-  REFS.presence.child(partnerId).on('value',s=>{
-    const st=document.getElementById('chatStatus');const d=s.val();
-    if(d&&d.online){st.textContent='Online';st.className='topbar-sub online'}else{st.textContent='Offline';st.className='topbar-sub'}
-  });
+  if(u.profileImage){img.src=u.profileImage;img.style.display='block';pl.style.display='none'}else{img.style.display='none';pl.style.display='flex';pl.textContent=u.name[0]}
+  REFS.presence.child(PId).on('value',s=>{const st=document.getElementById('chatStatus');const d=s.val();if(d&&d.online){st.textContent='Online';st.className='topbar-sub online'}else{st.textContent='Offline';st.className='topbar-sub'}});
 }
 
 function renderMsgs(msgs){
   const c=document.getElementById('msgList');const my=uid();c.innerHTML='';
+  let lastDate='';
   msgs.forEach(m=>{
-    const mine=m.senderId===my;const d=document.createElement('div');
-    d.className='msg '+(mine?'sent':'rcvd');d.dataset.id=m.id;
+    // Date separator
+    const d=new Date(m.timestamp).toDateString();
+    if(d!==lastDate){lastDate=d;const sep=document.createElement('div');sep.className='date-sep';sep.innerHTML='<span>'+new Date(m.timestamp).toLocaleDateString([],{day:'numeric',month:'short',year:'numeric'})+'</span>';c.appendChild(sep)}
+    const mine=m.senderId===my;
+    const wrap=document.createElement('div');
+    wrap.className='msg-wrap '+(mine?'sent':'rcvd');
+    wrap.dataset.id=m.id;
+
+    // Swipe reply indicator
+    const swi=document.createElement('div');swi.className='swipe-indicator';swi.textContent='↩';wrap.appendChild(swi);
+
+    const msg=document.createElement('div');
+    msg.className='msg '+(mine?'sent':'rcvd');
+    if(m.pinned)msg.innerHTML+='<div class="msg-pin">📌</div>';
+
     let html='';
+    // Reply quote
     if(m.replyTo)html+=`<div style="font-size:11px;color:${mine?'rgba(255,255,255,.5)':'var(--primary)'};margin-bottom:3px;border-left:2px solid ${mine?'rgba(255,255,255,.3)':'var(--primary)'};padding-left:7px">${escapeHtml(m.replyTo.text||'')}</div>`;
-    if(m.type==='image'&&m.imageUrl)html+=`<img src="${m.imageUrl}" class="msg-img" onclick="event.stopPropagation();openViewer('${m.imageUrl}')" alt="">`;
-    if(m.text)html+=`<div>${escapeHtml(m.text)}</div>`;
-    html+=`<div class="msg-time">${formatTime(m.timestamp)}${mine?`<span class="msg-status ${m.seen?'seen':''}">${m.seen?'✓✓':'✓'}</span>`:''}</div>`;
-    d.innerHTML=html;
+    // Image
+    if(m.type==='image'&&m.imageUrl&&!m.deleted)html+=`<img src="${m.imageUrl}" class="msg-img" alt="Image">`;
+    // Deleted
+    if(m.deleted){html+=`<div class="msg-deleted">${m.deleted==='everyone'?'This message was deleted':'You deleted this message'}</div>`}
+    // Text
+    else if(m.text){
+      if(m.starred)html+=`<span class="msg-star">⭐</span>`;
+      html+=`<div class="msg-text">${escapeHtml(m.text)}</div>`;
+    }
+    // Edited label
+    if(m.edited&&!m.deleted)html+=`<span class="msg-edited">edited</span>`;
+    // Meta: time + status
+    html+=`<div class="msg-meta">${formatTime(m.timestamp)}${mine?`<span class="msg-status ${m.seen?'seen':m.delivered?'delivered':''}">${m.seen?'✓✓':m.delivered?'✓✓':'✓'}</span>`:''}</div>`;
+    msg.innerHTML=html;
+    // Attach image click
+    const imgEl=msg.querySelector('.msg-img');
+    if(imgEl)imgEl.onclick=(e)=>{e.stopPropagation();openViewer(imgEl.src)};
+    wrap.appendChild(msg);
+
+    // Reactions
+    if(m.reactions&&Object.keys(m.reactions).length>0){
+      const rdiv=document.createElement('div');rdiv.className='msg-reactions';
+      const counted={};
+      Object.entries(m.reactions).forEach(([userId,emoji])=>{
+        if(!counted[emoji])counted[emoji]={count:0,mine:false};
+        counted[emoji].count++;
+        if(userId===my)counted[emoji].mine=true;
+      });
+      Object.entries(counted).forEach(([emoji,info])=>{
+        const r=document.createElement('span');r.className='msg-reaction'+(info.mine?' mine':'');
+        r.textContent=emoji+(info.count>1?' '+info.count:'');
+        r.onclick=()=>toggleReaction(m.id,emoji);
+        rdiv.appendChild(r);
+      });
+      msg.appendChild(rdiv);
+    }
+
+    // Swipe to reply (touch)
+    let sx=0,swiping=false;
+    wrap.addEventListener('touchstart',e=>{sx=e.touches[0].clientX});
+    wrap.addEventListener('touchmove',e=>{
+      const dx=e.touches[0].clientX-sx;
+      if(dx>30&&dx<120&&!swiping){swiping=true;wrap.classList.add('swiping');navigator.vibrate&&navigator.vibrate(10)}
+      if(dx<30)swiping=false;
+    });
+    wrap.addEventListener('touchend',e=>{
+      if(wrap.classList.contains('swiping')){wrap.classList.remove('swiping');replyTo(m.text,m.id);}
+      swiping=false;
+    });
+
     // Long press
-    let t;d.addEventListener('mousedown',()=>{t=setTimeout(()=>showOptions(m,d),500)});d.addEventListener('mouseup',()=>clearTimeout(t));d.addEventListener('mouseleave',()=>clearTimeout(t));d.addEventListener('touchstart',()=>{t=setTimeout(()=>showOptions(m,d),500)});d.addEventListener('touchend',()=>clearTimeout(t));
-    c.appendChild(d);
+    let lt;wrap.addEventListener('mousedown',()=>{lt=setTimeout(()=>showMenu(m),400)});wrap.addEventListener('mouseup',()=>clearTimeout(lt));wrap.addEventListener('mouseleave',()=>clearTimeout(lt));wrap.addEventListener('touchstart',()=>{lt=setTimeout(()=>showMenu(m),400)});wrap.addEventListener('touchend',()=>clearTimeout(lt));
+
+    c.appendChild(wrap);
   });
   document.getElementById('msgContainer').scrollTop=document.getElementById('msgContainer').scrollHeight;
 }
 
-function showOptions(msg,el){
-  const menu=document.createElement('div');menu.style.cssText='position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-radius:14px 14px 0 0;z-index:200;padding:14px;box-shadow:0 -4px 24px rgba(0,0,0,.4);animation:fadeIn .2s ease;border-top:1px solid var(--glass-border)';
+let _ctxMsg=null;
+function showMenu(m){
+  _ctxMsg=m;
+  const my=uid();const mine=m.senderId===my;
   const ov=document.createElement('div');ov.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;z-index:199;background:rgba(0,0,0,.3)';ov.onclick=()=>{menu.remove();ov.remove()};
-  menu.innerHTML=`
-    <button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px" onclick="menuRemove();replyTo('${escapeHtml(msg.text)}','${msg.id}')">↩️ Reply</button>
-    <button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px" onclick="menuRemove();copy('${escapeHtml(msg.text)}')">📋 Copy</button>
-    ${msg.senderId===uid()?`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px;color:var(--danger)" onclick="menuRemove();delMsg('${msg.id}')">🗑️ Delete</button>`:''}
-  `;document.body.appendChild(ov);document.body.appendChild(menu);
-  window.menuRemove=()=>{menu.remove();ov.remove()};
+  const menu=document.createElement('div');menu.style.cssText='position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-radius:14px 14px 0 0;z-index:200;padding:14px;box-shadow:0 -4px 24px rgba(0,0,0,.4);animation:fadeIn .2s ease;border-top:1px solid var(--glass-border)';
+  const t=_ctxMsg.text||'';
+  let btns='';
+  btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px" onclick="closeMenu();ctxReply()">↩️ Reply</button>`;
+  btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px" onclick="closeMenu();ctxCopy()">📋 Copy</button>`;
+  if(!_ctxMsg.deleted){
+    btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px" onclick="closeMenu();ctxForward()">➡️ Forward</button>`;
+    if(mine){
+      btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px" onclick="closeMenu();ctxEdit()">✏️ Edit</button>`;
+      btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px" onclick="closeMenu();ctxPin()">📌 ${_ctxMsg.pinned?'Unpin':'Pin'}</button>`;
+    }
+    btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px" onclick="closeMenu();ctxStar()">⭐ ${_ctxMsg.starred?'Unstar':'Star'}</button>`;
+  }
+  if(mine){
+    if(!_ctxMsg.deleted)btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px;color:var(--danger)" onclick="closeMenu();ctxDelMe()">🗑️ Delete for me</button>`;
+    btns+=`<button class="btn btn-ghost btn-full" style="justify-content:flex-start;padding:12px 16px;color:var(--danger)" onclick="closeMenu();ctxDelAll()">🗑️ Delete for everyone</button>`;
+  }
+  btns+=`<div style="display:flex;gap:4px;justify-content:center;padding:8px 0;border-top:1px solid var(--glass-border);margin-top:8px">`;
+  REACTIONS.forEach(r=>{btns+=`<button style="font-size:24px;width:40px;height:40px;border-radius:50%;background:transparent;border:none" onclick="closeMenu();ctxReact('${r}')">${r}</button>`});
+  btns+=`</div>`;
+  menu.innerHTML=btns;document.body.appendChild(ov);document.body.appendChild(menu);
+  window.closeMenu=()=>{menu.remove();ov.remove()};
 }
+function ctxReply(){replyTo(_ctxMsg.text,_ctxMsg.id)}
+function ctxCopy(){navigator.clipboard.writeText(_ctxMsg.text||'').then(()=>toast('Copied','success')).catch(()=>{})}
+function ctxForward(){
+  if(_ctxMsg.type==='image'&&_ctxMsg.imageUrl)window._fwd={text:'',imgUrl:_ctxMsg.imageUrl,type:'image'};
+  else window._fwd={text:_ctxMsg.text||'',imgUrl:'',type:'text'};
+  document.getElementById('fwdModal').classList.add('active');document.getElementById('fwdResults').innerHTML='';
+  getMyChats(chats=>showFwdResults(chats));
+}
+function ctxEdit(){editMsg(_ctxMsg.id,_ctxMsg.text)}
+async function ctxPin(){const v=!_ctxMsg.pinned;await REFS.messages.child(CId).child(_ctxMsg.id).child('pinned').set(v);_ctxMsg.pinned=v;toast(v?'Pinned':'Unpinned','success')}
+async function ctxStar(){const v=!_ctxMsg.starred;await REFS.messages.child(CId).child(_ctxMsg.id).child('starred').set(v);_ctxMsg.starred=v;toast(v?'Starred':'Unstarred','success')}
+async function ctxDelMe(){if(!confirm('Delete for you?'))return;await REFS.messages.child(CId).child(_ctxMsg.id).child('deleted').set('me')}
+async function ctxDelAll(){if(!confirm('Delete for everyone?'))return;await REFS.messages.child(CId).child(_ctxMsg.id).update({deleted:'everyone',text:'',imageUrl:null})}
+function ctxReact(e){toggleReaction(_ctxMsg.id,e)}
 
-function replyTo(text,id){reply={text,id};document.getElementById('replyBar').classList.add('show');document.getElementById('replyText').textContent=text;document.getElementById('chatInput').focus()}
-function cancelReply(){reply=null;document.getElementById('replyBar').classList.remove('show')}
-function copy(t){navigator.clipboard.writeText(t).then(()=>toast('Copied','success')).catch(()=>{})}
-function delMsg(id){deleteMessage(chatId,id)}
+function toggleReaction(mid,emoji){
+  const my=uid();if(!CId)return;
+  REFS.messages.child(CId).child(mid).child('reactions').once('value',snap=>{
+    const r=snap.val()||{};
+    if(r[my]===emoji)delete r[my];
+    else r[my]=emoji;
+    REFS.messages.child(CId).child(mid).child('reactions').set(r);
+  });
+}
+function replyTo(text,id){reply={text,id};document.getElementById('replyBar').classList.add('show');document.getElementById('replyName').textContent='Replying';document.getElementById('replyText').textContent=text||'📷 Image';document.getElementById('chatInput').focus()}
+function cancelReply(){reply=null;editing=null;document.getElementById('replyBar').classList.remove('show');document.getElementById('replyName').textContent='Replying'}
+function editMsg(id,t){
+  editing={id,text:t};
+  document.getElementById('replyBar').classList.add('show');
+  document.getElementById('replyName').textContent='Editing';
+  document.getElementById('replyText').textContent=t;
+  document.getElementById('chatInput').value=t;document.getElementById('chatInput').focus();autoResize(document.getElementById('chatInput'));
+  document.getElementById('sendBtn').disabled=false;
+}
+function showFwdResults(chats){
+  const c=document.getElementById('fwdResults');c.innerHTML='';
+  chats.forEach(ch=>{
+    const d=document.createElement('div');d.className='forward-user';
+    d.innerHTML=`${ch.img?`<img class="avatar avatar-sm" src="${ch.img}">`:`<div class="avatar avatar-sm avatar-placeholder" style="font-size:13px">${ch.name[0]}</div>`}<div style="font-weight:500">${escapeHtml(ch.name)}</div>`;
+    d.onclick=async()=>{
+      closeModal('fwdModal');
+      const fwd=window._fwd;
+      if(fwd.type==='image'&&fwd.imgUrl)await sendMessage(ch.id,'','image',fwd.imgUrl);
+      else if(fwd.text)await sendMessage(ch.id,'📨 Forwarded: '+fwd.text,'text');
+      toast('Forwarded','success');
+    };
+    c.appendChild(d);
+  });
+}
+function searchFwd(q){
+  document.querySelectorAll('.forward-user').forEach(el=>{
+    el.style.display=el.textContent.toLowerCase().includes(q.toLowerCase())?'flex':'none';
+  });
+}
 
 async function sendMsg(){
   const i=document.getElementById('chatInput');const t=i.value.trim();if(!t)return;
-  i.value='';autoResize(i);setTyping(chatId,false);document.getElementById('sendBtn').disabled=true;
-  await sendMessage(chatId,t,'text','',reply);reply=null;document.getElementById('replyBar').classList.remove('show');document.getElementById('sendBtn').disabled=false;
+  if(editing){
+    await REFS.messages.child(CId).child(editing.id).update({text:t,edited:true});
+    editing=null;cancelReply();
+  }else{
+    await sendMessage(CId,t,'text','',reply);
+    reply=null;cancelReply();
+  }
+  i.value='';autoResize(i);setTyping(CId,false);document.getElementById('sendBtn').disabled=true;
 }
-
 function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg()};document.getElementById('sendBtn').disabled=!e.target.value.trim()}
 function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,110)+'px'}
 function toggleEmoji(){document.getElementById('emojiPicker').classList.toggle('active')}
@@ -145,29 +286,23 @@ function insertEmoji(e){const i=document.getElementById('chatInput');i.value+=e;
 
 async function handleImage(ev){
   const f=ev.target.files[0];if(!f||f.size>5*1024*1024){toast('Image too large','error');return}
-  const url=await uploadChatImage(chatId,f);
-  if(url){await sendMessage(chatId,'','image',url,reply);reply=null;document.getElementById('replyBar').classList.remove('show')}
+  const url=await uploadChatImage(CId,f);if(url){await sendMessage(CId,'','image',url,reply);reply=null;cancelReply()}
   ev.target.value='';
 }
-
 function openViewer(url){document.getElementById('viewerImg').src=url;document.getElementById('imgViewer').classList.add('active')}
 function closeViewer(){document.getElementById('imgViewer').classList.remove('active')}
+function dlImg(){const a=document.createElement('a');a.href=document.getElementById('viewerImg').src;a.download='seven_image';a.click()}
 
 function showInfo(){
   document.getElementById('infoModal').classList.add('active');
   const img=document.getElementById('infoImg'),pl=document.getElementById('infoPl');
-  if(partnerData){
-    document.getElementById('infoName').textContent=partnerData.name;
-    if(partnerData.profileImage){img.src=partnerData.profileImage;img.style.display='block';pl.style.display='none'}
-    else{img.style.display='none';pl.style.display='flex';pl.textContent=partnerData.name[0]}
-    document.getElementById('infoStatus').textContent=partnerData.onlineStatus?'Online':'Offline';
+  if(PD){document.getElementById('infoName').textContent=PD.name;
+    if(PD.profileImage){img.src=PD.profileImage;img.style.display='block';pl.style.display='none'}else{img.style.display='none';pl.style.display='flex';pl.textContent=PD.name[0]}
+    document.getElementById('infoStatus').textContent=PD.onlineStatus?'Online':'Offline';
   }
 }
 function closeModal(id){document.getElementById(id).classList.remove('active')}
-function deleteChat(){
-  if(!confirm('Delete this conversation?'))return;closeModal('infoModal');
-  REFS.messages.child(chatId).remove().then(()=>{REFS.chats.child(chatId).update({lastMessage:'',lastTime:0});goTo('home.html')});
-}
+function delChat(){if(!confirm('Delete this conversation?'))return;closeModal('infoModal');REFS.messages.child(CId).remove().then(()=>{REFS.chats.child(CId).update({lastMessage:'',lastTime:0});goTo('home.html')})}
 </script>
 </body>
 </html>
